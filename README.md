@@ -30,7 +30,7 @@ Mỗi lần chạy: `python scripts/build_data.py` → build `_site` → deploy 
 
 Settings → Pages → **Build and deployment → Source: GitHub Actions**. Sau đó vào tab Actions → *Update rotation data* → **Run workflow**.
 
-Trang: `https://bachtranprivate2025-droid.github.io/us-ector-rotation-claude/`
+Trang: `https://bachtranprivate2025-droid.github.io/US-ECTOR-ROTATION-CLAUDE/`
 
 ### Chạy thử offline
 
