@@ -1,0 +1,841 @@
+{
+ "benchmark": "SPY",
+ "main": [
+  {
+   "ticker": "XLK",
+   "name": "Technology",
+   "stocks": [
+    "NVDA",
+    "MSFT",
+    "AAPL",
+    "AVGO",
+    "AMD"
+   ],
+   "theme": "AI capex, semiconductor cycle và earnings megacap",
+   "earnings": "NASDAQ:NVDA",
+   "earningsFallback": "2026-11-17"
+  },
+  {
+   "ticker": "XLF",
+   "name": "Financials",
+   "stocks": [
+    "BRK.B",
+    "JPM",
+    "V",
+    "MA",
+    "BAC"
+   ],
+   "theme": "Đường cong lợi suất, NIM, tín dụng và earnings ngân hàng",
+   "earnings": "NYSE:BRK.B",
+   "earningsFallback": "2027-02-22"
+  },
+  {
+   "ticker": "XLV",
+   "name": "Healthcare",
+   "stocks": [
+    "LLY",
+    "JNJ",
+    "UNH",
+    "AMGN"
+   ],
+   "theme": "Medicare, drug pricing, GLP-1 và earnings dược/bảo hiểm",
+   "earnings": "NYSE:LLY",
+   "earningsFallback": "2027-02-10"
+  },
+  {
+   "ticker": "XLY",
+   "name": "Consumer Discretionary",
+   "stocks": [
+    "AMZN",
+    "HD",
+    "MCD",
+    "NKE"
+   ],
+   "theme": "Retail sales, thu nhập khả dụng và earnings AMZN/HD",
+   "earnings": "NASDAQ:AMZN",
+   "earningsFallback": "2027-02-04"
+  },
+  {
+   "ticker": "XLC",
+   "name": "Communication Services",
+   "stocks": [
+    "META",
+    "GOOGL",
+    "NFLX",
+    "SPOT"
+   ],
+   "theme": "Quảng cáo số, streaming, AI search và earnings META/GOOGL",
+   "earnings": "NASDAQ:META",
+   "earningsFallback": "2027-02-03"
+  },
+  {
+   "ticker": "XLI",
+   "name": "Industrials",
+   "stocks": [
+    "GE",
+    "CAT",
+    "RTX",
+    "UBER",
+    "BA"
+   ],
+   "theme": "PMI, capex, quốc phòng, hàng không và reshoring",
+   "earnings": "NYSE:GE",
+   "earningsFallback": "2027-01-21"
+  },
+  {
+   "ticker": "XLP",
+   "name": "Consumer Staples",
+   "stocks": [
+    "WMT",
+    "COST",
+    "PG",
+    "KO"
+   ],
+   "theme": "CPI thực phẩm, sức mua tiêu dùng và biên lợi nhuận defensive",
+   "earnings": "NASDAQ:WMT",
+   "earningsFallback": "2026-11-19"
+  },
+  {
+   "ticker": "XLE",
+   "name": "Energy",
+   "stocks": [
+    "XOM",
+    "CVX"
+   ],
+   "theme": "Giá dầu/khí, kỷ luật OPEC+ và earnings XOM/CVX",
+   "earnings": "NYSE:XOM",
+   "earningsFallback": "2027-02-02"
+  },
+  {
+   "ticker": "XLU",
+   "name": "Utilities",
+   "stocks": [
+    "VST"
+   ],
+   "theme": "Lợi suất trái phiếu, lộ trình lãi suất và nhu cầu điện data center",
+   "earnings": "NYSE:VST",
+   "earningsFallback": "2027-03-03"
+  },
+  {
+   "ticker": "XLRE",
+   "name": "Real Estate",
+   "stocks": [
+    "PLD",
+    "AMT",
+    "EQIX"
+   ],
+   "theme": "Lợi suất dài hạn, kỳ vọng hạ lãi suất và nhu cầu REIT/data center",
+   "earnings": "NYSE:PLD",
+   "earningsFallback": "2027-01-27"
+  },
+  {
+   "ticker": "XLB",
+   "name": "Materials",
+   "stocks": [
+    "LIN",
+    "SHW",
+    "FCX",
+    "NEM"
+   ],
+   "theme": "USD, kim loại công nghiệp, vàng và chu kỳ sản xuất toàn cầu",
+   "earnings": "NASDAQ:LIN",
+   "earningsFallback": "2027-02-11"
+  }
+ ],
+ "sub": [
+  {
+   "ticker": "SMH",
+   "name": "Semiconductor / Memory",
+   "stocks": [
+    "NVDA",
+    "AVGO",
+    "AMD",
+    "MU"
+   ],
+   "theme": "AI capex, HBM/DRAM pricing và guidance bán dẫn",
+   "earnings": "NASDAQ:NVDA",
+   "earningsFallback": "2026-11-17"
+  },
+  {
+   "ticker": "SOXX",
+   "name": "Semiconductors",
+   "stocks": [
+    "NVDA",
+    "AVGO",
+    "AMD",
+    "QCOM"
+   ],
+   "theme": "AI capex, HBM/DRAM pricing và guidance bán dẫn",
+   "earnings": "NASDAQ:NVDA",
+   "earningsFallback": "2026-11-17"
+  },
+  {
+   "ticker": "DRAM",
+   "name": "Memory / AI Infrastructure",
+   "stocks": [
+    "MU",
+    "WDC",
+    "STX",
+    "SNDK"
+   ],
+   "theme": "AI capex, HBM/DRAM pricing và guidance bán dẫn",
+   "earnings": "NASDAQ:MU",
+   "earningsFallback": "2026-12-23"
+  },
+  {
+   "ticker": "VGT",
+   "name": "Broad Technology",
+   "stocks": [
+    "NVDA",
+    "AAPL",
+    "MSFT",
+    "AVGO"
+   ],
+   "theme": "AI monetization, cloud growth và earnings công nghệ",
+   "earnings": "NASDAQ:NVDA",
+   "earningsFallback": "2026-11-17"
+  },
+  {
+   "ticker": "IGV",
+   "name": "Software / Cloud",
+   "stocks": [
+    "MSFT",
+    "PLTR",
+    "ORCL",
+    "NOW"
+   ],
+   "theme": "AI monetization, cloud growth và earnings công nghệ",
+   "earnings": "NASDAQ:MSFT",
+   "earningsFallback": "2027-01-26"
+  },
+  {
+   "ticker": "SKYY",
+   "name": "Cloud Infrastructure",
+   "stocks": [
+    "ORCL",
+    "MSFT",
+    "AMZN",
+    "GOOGL"
+   ],
+   "theme": "AI monetization, cloud growth và earnings công nghệ",
+   "earnings": "NYSE:ORCL",
+   "earningsFallback": "2026-12-14"
+  },
+  {
+   "ticker": "CLOU",
+   "name": "Cloud Computing",
+   "stocks": [
+    "NET",
+    "WIX",
+    "CRM",
+    "ZM"
+   ],
+   "theme": "AI monetization, cloud growth và earnings công nghệ",
+   "earnings": "NYSE:NET",
+   "earningsFallback": "2027-02-11"
+  },
+  {
+   "ticker": "PNQI",
+   "name": "Internet / Digital Content",
+   "stocks": [
+    "META",
+    "GOOGL",
+    "NFLX",
+    "SPOT"
+   ],
+   "theme": "AI monetization, cloud growth và earnings công nghệ",
+   "earnings": "NASDAQ:META",
+   "earningsFallback": "2027-02-03"
+  },
+  {
+   "ticker": "CIBR",
+   "name": "Cybersecurity",
+   "stocks": [
+    "CRWD",
+    "PANW",
+    "OKTA",
+    "ZS"
+   ],
+   "theme": "Security budgets, ARR/billings và hợp đồng chính phủ",
+   "earnings": "NASDAQ:CRWD",
+   "earningsFallback": "2026-12-01"
+  },
+  {
+   "ticker": "HACK",
+   "name": "Cybersecurity Broad",
+   "stocks": [
+    "PANW",
+    "CRWD",
+    "CSCO",
+    "AVGO"
+   ],
+   "theme": "Security budgets, ARR/billings và hợp đồng chính phủ",
+   "earnings": "NASDAQ:PANW",
+   "earningsFallback": "2026-11-18"
+  },
+  {
+   "ticker": "BUG",
+   "name": "Cybersecurity Growth",
+   "stocks": [
+    "PANW",
+    "CRWD",
+    "FTNT",
+    "ZS"
+   ],
+   "theme": "Security budgets, ARR/billings và hợp đồng chính phủ",
+   "earnings": "NASDAQ:PANW",
+   "earningsFallback": "2026-11-18"
+  },
+  {
+   "ticker": "IYZ",
+   "name": "Telecom",
+   "stocks": [
+    "TMUS",
+    "VZ",
+    "T"
+   ],
+   "theme": "Capex mạng, ARPU, spectrum và lãi suất",
+   "earnings": "NASDAQ:TMUS",
+   "earningsFallback": "2027-02-03"
+  },
+  {
+   "ticker": "XTL",
+   "name": "Telecom Equal Weight",
+   "stocks": [
+    "TMUS",
+    "CSCO",
+    "MSI",
+    "CIEN"
+   ],
+   "theme": "Capex mạng, ARPU, spectrum và lãi suất",
+   "earnings": "NASDAQ:TMUS",
+   "earningsFallback": "2027-02-03"
+  },
+  {
+   "ticker": "KRE",
+   "name": "Regional Banks",
+   "stocks": [
+    "CFG",
+    "KEY",
+    "RF",
+    "HBAN"
+   ],
+   "theme": "Đường cong lợi suất, tín dụng, NIM và payment volume",
+   "earnings": "NYSE:CFG",
+   "earningsFallback": "2027-01-20"
+  },
+  {
+   "ticker": "IAT",
+   "name": "Regional Banks Large Cap",
+   "stocks": [
+    "PNC",
+    "USB",
+    "TFC",
+    "MTB"
+   ],
+   "theme": "Đường cong lợi suất, tín dụng, NIM và payment volume",
+   "earnings": "NYSE:PNC",
+   "earningsFallback": "2027-01-15"
+  },
+  {
+   "ticker": "IYG",
+   "name": "Financial Services",
+   "stocks": [
+    "JPM",
+    "V",
+    "MA",
+    "BAC"
+   ],
+   "theme": "Đường cong lợi suất, tín dụng, NIM và payment volume",
+   "earnings": "NYSE:JPM",
+   "earningsFallback": "2027-01-14"
+  },
+  {
+   "ticker": "IAI",
+   "name": "Broker-Dealers / Exchanges",
+   "stocks": [
+    "GS",
+    "MS",
+    "SCHW",
+    "SPGI"
+   ],
+   "theme": "Đường cong lợi suất, tín dụng, NIM và payment volume",
+   "earnings": "NYSE:GS",
+   "earningsFallback": "2027-01-14"
+  },
+  {
+   "ticker": "IPAY",
+   "name": "Digital Payments",
+   "stocks": [
+    "V",
+    "MA",
+    "AXP",
+    "PYPL"
+   ],
+   "theme": "Đường cong lợi suất, tín dụng, NIM và payment volume",
+   "earnings": "NYSE:V",
+   "earningsFallback": "2027-01-28"
+  },
+  {
+   "ticker": "HYG",
+   "name": "High Yield Credit",
+   "stocks": [],
+   "theme": "Credit spread, default risk và lộ trình lãi suất",
+   "earnings": null,
+   "earningsFallback": null
+  },
+  {
+   "ticker": "XBI",
+   "name": "Biotechnology",
+   "stocks": [
+    "MRNA",
+    "AMGN",
+    "GILD",
+    "VRTX"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NASDAQ:MRNA",
+   "earningsFallback": "2027-02-25"
+  },
+  {
+   "ticker": "IBB",
+   "name": "Biotechnology Large Cap",
+   "stocks": [
+    "GILD",
+    "AMGN",
+    "VRTX",
+    "REGN"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NASDAQ:GILD",
+   "earningsFallback": "2027-02-04"
+  },
+  {
+   "ticker": "PJP",
+   "name": "Pharmaceuticals",
+   "stocks": [
+    "LLY",
+    "JNJ",
+    "MRK",
+    "ABBV"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NYSE:LLY",
+   "earningsFallback": "2027-02-10"
+  },
+  {
+   "ticker": "IHI",
+   "name": "Medical Devices",
+   "stocks": [
+    "ISRG",
+    "ABT",
+    "BSX"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NASDAQ:ISRG",
+   "earningsFallback": "2027-01-26"
+  },
+  {
+   "ticker": "MDEV",
+   "name": "Medical Devices Growth",
+   "stocks": [
+    "BSX",
+    "ISRG",
+    "SYK",
+    "EW"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NYSE:BSX",
+   "earningsFallback": "2027-02-03"
+  },
+  {
+   "ticker": "IHF",
+   "name": "Healthcare Providers",
+   "stocks": [
+    "UNH",
+    "ELV",
+    "HUM"
+   ],
+   "theme": "FDA/clinical data, reimbursement và earnings healthcare",
+   "earnings": "NYSE:UNH",
+   "earningsFallback": "2027-01-20"
+  },
+  {
+   "ticker": "IYC",
+   "name": "Retail / Leisure",
+   "stocks": [
+    "AMZN",
+    "HD",
+    "MCD",
+    "NKE"
+   ],
+   "theme": "Retail sales, CPI, sức mua và earnings tiêu dùng",
+   "earnings": "NASDAQ:AMZN",
+   "earningsFallback": "2027-02-04"
+  },
+  {
+   "ticker": "ONLN",
+   "name": "Online Retail",
+   "stocks": [
+    "AMZN",
+    "WMT",
+    "EBAY",
+    "ETSY"
+   ],
+   "theme": "Retail sales, CPI, sức mua và earnings tiêu dùng",
+   "earnings": "NASDAQ:AMZN",
+   "earningsFallback": "2027-02-04"
+  },
+  {
+   "ticker": "PEJ",
+   "name": "Leisure & Entertainment",
+   "stocks": [
+    "NFLX",
+    "RCL",
+    "LYV",
+    "CCL"
+   ],
+   "theme": "Retail sales, CPI, sức mua và earnings tiêu dùng",
+   "earnings": "NASDAQ:NFLX",
+   "earningsFallback": "2027-01-26"
+  },
+  {
+   "ticker": "KXI",
+   "name": "Consumer Staples / Food",
+   "stocks": [
+    "WMT",
+    "COST",
+    "PG",
+    "KO"
+   ],
+   "theme": "Retail sales, CPI, sức mua và earnings tiêu dùng",
+   "earnings": "NASDAQ:WMT",
+   "earningsFallback": "2026-11-19"
+  },
+  {
+   "ticker": "PBJ",
+   "name": "Food & Beverage",
+   "stocks": [
+    "COST",
+    "WMT",
+    "KO",
+    "PEP"
+   ],
+   "theme": "Retail sales, CPI, sức mua và earnings tiêu dùng",
+   "earnings": "NASDAQ:COST",
+   "earningsFallback": "2026-12-10"
+  },
+  {
+   "ticker": "XAR",
+   "name": "Aerospace / Defense",
+   "stocks": [
+    "GE",
+    "RTX",
+    "BA",
+    "LMT"
+   ],
+   "theme": "Ngân sách quốc phòng, backlog và năng lực giao hàng",
+   "earnings": "NYSE:GE",
+   "earningsFallback": "2027-01-21"
+  },
+  {
+   "ticker": "SHLD",
+   "name": "Defense Technology",
+   "stocks": [
+    "PLTR",
+    "RTX",
+    "LMT",
+    "NOC"
+   ],
+   "theme": "Ngân sách quốc phòng, backlog và năng lực giao hàng",
+   "earnings": "NASDAQ:PLTR",
+   "earningsFallback": "2027-02-17"
+  },
+  {
+   "ticker": "VIS",
+   "name": "Industrials / Machinery",
+   "stocks": [
+    "GE",
+    "CAT",
+    "RTX"
+   ],
+   "theme": "Earnings, guidance và xu hướng dòng tiền của nhóm",
+   "earnings": "NYSE:GE",
+   "earningsFallback": "2027-01-21"
+  },
+  {
+   "ticker": "IYT",
+   "name": "Transportation",
+   "stocks": [
+    "UBER",
+    "UNP",
+    "UPS",
+    "FDX"
+   ],
+   "theme": "Giá nhiên liệu, nhu cầu vận tải và pricing/yield",
+   "earnings": "NYSE:UBER",
+   "earningsFallback": "2027-02-10"
+  },
+  {
+   "ticker": "XTN",
+   "name": "Transportation Equal Weight",
+   "stocks": [
+    "UAL",
+    "DAL",
+    "FDX",
+    "JBHT"
+   ],
+   "theme": "Giá nhiên liệu, nhu cầu vận tải và pricing/yield",
+   "earnings": "NASDAQ:UAL",
+   "earningsFallback": "2027-01-20"
+  },
+  {
+   "ticker": "JETS",
+   "name": "Transport / Airlines",
+   "stocks": [
+    "UAL",
+    "DAL",
+    "AAL",
+    "LUV"
+   ],
+   "theme": "Giá nhiên liệu, nhu cầu vận tải và pricing/yield",
+   "earnings": "NASDAQ:UAL",
+   "earningsFallback": "2027-01-20"
+  },
+  {
+   "ticker": "XOP",
+   "name": "Energy / Oil & Gas",
+   "stocks": [
+    "XOM",
+    "CVX"
+   ],
+   "theme": "Giá dầu/khí, OPEC+ và capex năng lượng",
+   "earnings": "NYSE:XOM",
+   "earningsFallback": "2027-02-02"
+  },
+  {
+   "ticker": "OIH",
+   "name": "Oil Services",
+   "stocks": [
+    "SLB",
+    "HAL",
+    "BKR",
+    "NOV"
+   ],
+   "theme": "Giá dầu/khí, OPEC+ và capex năng lượng",
+   "earnings": "NYSE:SLB",
+   "earningsFallback": "2027-01-15"
+  },
+  {
+   "ticker": "URNM",
+   "name": "Uranium Miners",
+   "stocks": [
+    "CCJ",
+    "UEC",
+    "NXE",
+    "LEU"
+   ],
+   "theme": "Giá uranium, hợp đồng utility và chính sách hạt nhân",
+   "earnings": "NYSE:CCJ",
+   "earningsFallback": "2027-02-12"
+  },
+  {
+   "ticker": "ICLN",
+   "name": "Clean Energy / Solar",
+   "stocks": [
+    "FSLR",
+    "ENPH",
+    "BE"
+   ],
+   "theme": "Lãi suất, chính sách năng lượng và nhu cầu điện sạch",
+   "earnings": "NASDAQ:FSLR",
+   "earningsFallback": "2027-03-02"
+  },
+  {
+   "ticker": "TAN",
+   "name": "Solar Energy",
+   "stocks": [
+    "FSLR",
+    "NXT",
+    "ENPH",
+    "RUN"
+   ],
+   "theme": "Lãi suất, chính sách năng lượng và nhu cầu điện sạch",
+   "earnings": "NASDAQ:FSLR",
+   "earningsFallback": "2027-03-02"
+  },
+  {
+   "ticker": "IDU",
+   "name": "Utilities / Power",
+   "stocks": [
+    "VST",
+    "NEE",
+    "SO"
+   ],
+   "theme": "Lợi suất trái phiếu, lãi suất và nhu cầu điện data center",
+   "earnings": "NYSE:VST",
+   "earningsFallback": "2027-03-03"
+  },
+  {
+   "ticker": "IYR",
+   "name": "Real Estate / REIT",
+   "stocks": [
+    "PLD",
+    "AMT",
+    "EQIX"
+   ],
+   "theme": "Lợi suất dài hạn, lãi suất và occupancy/rent growth",
+   "earnings": "NYSE:PLD",
+   "earningsFallback": "2027-01-27"
+  },
+  {
+   "ticker": "VNQ",
+   "name": "Real Estate Broad",
+   "stocks": [
+    "PLD",
+    "AMT",
+    "EQIX",
+    "WELL"
+   ],
+   "theme": "Lợi suất dài hạn, lãi suất và occupancy/rent growth",
+   "earnings": "NYSE:PLD",
+   "earningsFallback": "2027-01-27"
+  },
+  {
+   "ticker": "XME",
+   "name": "Metals / Mining",
+   "stocks": [
+    "FCX",
+    "NEM",
+    "NUE",
+    "STLD"
+   ],
+   "theme": "USD, giá hàng hóa, China demand và supply discipline",
+   "earnings": "NYSE:FCX",
+   "earningsFallback": "2027-01-27"
+  },
+  {
+   "ticker": "SLX",
+   "name": "Steel",
+   "stocks": [
+    "RIO",
+    "VALE",
+    "NUE",
+    "STLD"
+   ],
+   "theme": "USD, giá hàng hóa, China demand và supply discipline",
+   "earnings": "NYSE:RIO",
+   "earningsFallback": "2027-02-24"
+  },
+  {
+   "ticker": "GDX",
+   "name": "Gold Miners",
+   "stocks": [
+    "NEM",
+    "GOLD",
+    "AEM"
+   ],
+   "theme": "USD, giá hàng hóa, China demand và supply discipline",
+   "earnings": "NYSE:NEM",
+   "earningsFallback": "2027-02-25"
+  },
+  {
+   "ticker": "LIT",
+   "name": "Lithium & Battery",
+   "stocks": [
+    "ALB",
+    "SQM",
+    "TSLA",
+    "CATL"
+   ],
+   "theme": "USD, giá hàng hóa, China demand và supply discipline",
+   "earnings": "NYSE:ALB",
+   "earningsFallback": "2027-02-17"
+  }
+ ],
+ "bybitSnapshot": {
+  "asOf": "2026-11-16",
+  "etf": [
+   "XLV",
+   "XLP",
+   "XLF",
+   "XLU",
+   "XLI",
+   "XLE",
+   "XLK",
+   "XBI",
+   "SOXX",
+   "DRAM",
+   "SMH",
+   "GDX",
+   "URNM"
+  ],
+  "stock": {
+   "LLY": "LLYUSDT",
+   "JNJ": "JNJUSDT",
+   "UNH": "UNHUSDT",
+   "AMGN": "AMGNUSDT",
+   "WMT": "WMTUSDT",
+   "COST": "COSTUSDT",
+   "PG": "PGUSDT",
+   "KO": "KOUSDT",
+   "BRK.B": "BRKBUSDT",
+   "JPM": "JPMUSDT",
+   "V": "VUSDT",
+   "MA": "MAUSDT",
+   "BAC": "BACUSDT",
+   "VST": "VSTUSDT",
+   "AMZN": "AMZNUSDT",
+   "HD": "HDUSDT",
+   "MCD": "MCDUSDT",
+   "NKE": "NKEUSDT",
+   "GE": "GEUSDT",
+   "CAT": "CATSTOCKUSDT",
+   "UBER": "UBERUSDT",
+   "BA": "BAUSDT",
+   "XOM": "XOMUSDT",
+   "CVX": "CVXSTOCKUSDT",
+   "META": "METAUSDT",
+   "GOOGL": "GOOGLUSDT",
+   "NFLX": "NFLXUSDT",
+   "SPOT": "SPOTUSDT",
+   "NVDA": "NVDAUSDT",
+   "MSFT": "MSFTUSDT",
+   "AAPL": "AAPLUSDT",
+   "AVGO": "AVGOUSDT",
+   "AMD": "AMDSTOCKUSDT",
+   "AAL": "AALUSDT",
+   "ISRG": "ISRGUSDT",
+   "MRK": "MRKUSDT",
+   "ABBV": "ABBVUSDT",
+   "LMT": "LMTUSDT",
+   "PEP": "PEPUSDT",
+   "GILD": "GILDUSDT",
+   "VRTX": "VRTXSTOCKUSDT",
+   "REGN": "REGNUSDT",
+   "AXP": "AXPUSDT",
+   "PYPL": "PYPLUSDT",
+   "EBAY": "EBAYUSDT",
+   "PLTR": "PLTRUSDT",
+   "MRNA": "MRNAUSDT",
+   "CSCO": "CSCOUSDT",
+   "CIEN": "CIENUSDT",
+   "PANW": "PANWUSDT",
+   "CRWD": "CRWDUSDT",
+   "ZS": "ZSUSDT",
+   "OKTA": "OKTAUSDT",
+   "ORCL": "ORCLUSDT",
+   "NOW": "NOWUSDT",
+   "BE": "BEUSDT",
+   "QCOM": "QCOMUSDT",
+   "MU": "MUUSDT",
+   "WDC": "WDCUSDT",
+   "STX": "STXXUSDT",
+   "SNDK": "SNDKUSDT",
+   "NET": "NETUSDT",
+   "CRM": "CRMUSDT",
+   "ZM": "ZMUSDT",
+   "TSLA": "TSLAUSDT"
+  }
+ }
+}

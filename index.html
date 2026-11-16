@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0d1319" />
+<meta name="description" content="Live US sector and industry ETF rotation dashboard" />
+<title>US Sector Rotation Live</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d1319; --panel:#121a22; --panel2:#16202a; --line:#22303d; --line2:#2c3c4b;
+  --text:#e3eaf1; --muted:#8a99a8; --dim:#5f6f7f;
+  --green:#3ddc97; --green2:#1f7a55; --red:#ff6b6b; --amber:#f4b740; --blue:#5aa9ff; --purple:#b48cff;
+  --chip:#1b2631;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 18px 40px}
+.num{font-variant-numeric:tabular-nums}
+.pos{color:var(--green)} .neg{color:var(--red)} .flat{color:var(--muted)}
+small,.sub{color:var(--muted);font-size:12px}
+
+/* header */
+header{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.kicker{color:var(--green);font-size:11px;letter-spacing:.14em;font-weight:700;text-transform:uppercase}
+h1{margin:4px 0 4px;font-size:30px;letter-spacing:-.01em;font-weight:700}
+.lede{color:var(--muted);font-size:13px;margin:0}
+.status{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;
+  border:1px solid var(--line2);background:var(--panel2);white-space:nowrap}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.badge.live{border-color:#1f6b4b;background:#0f2a20;color:#bff3da} .badge.live .dot{background:var(--green);box-shadow:0 0 0 3px #3ddc9733;animation:pulse 1.6s infinite}
+.badge.done .dot{background:var(--blue)} .badge.warn{border-color:#6b5320;background:#2a210f;color:#ffe2a6} .badge.warn .dot{background:var(--amber)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px #3ddc9700}}
+.meta{color:var(--muted);font-size:12px;text-align:right}
+
+/* mode control */
+.modes{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0 12px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{background:none;border:0;color:var(--muted);padding:6px 14px;border-radius:7px;font:inherit;font-size:13px;cursor:pointer;font-weight:600}
+.seg button.on{background:var(--green2);color:#eafff5}
+.modes .note{color:var(--dim);font-size:12px;margin-left:auto}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card .lbl{color:var(--muted);font-size:12px}
+.card .val{font-size:19px;font-weight:700;margin:3px 0 2px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .val.g{color:var(--green)} .card .val.r{color:var(--red)}
+
+/* panels */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:12px}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.ph h2{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+.ph .sub{margin-top:2px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line2);background:var(--chip);color:var(--muted);white-space:nowrap}
+.pill.ok{background:#0f2a20;border-color:#1f6b4b;color:var(--green)}
+.pill.wait{background:#2a210f;border-color:#6b5320;color:var(--amber)}
+.pill.no{background:#2a1416;border-color:#6b2a2e;color:#ff9b9b}
+.callout{margin-top:10px;background:#1a1810;border:1px solid #4d4020;border-radius:10px;padding:10px 12px;font-weight:600}
+.callout.ok{background:#0f2219;border-color:#1f5c41}
+.rule{color:var(--dim);font-size:11.5px;margin-top:8px}
+.explain{color:var(--muted);font-size:12.5px;margin:10px 2px 0}
+.rotlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:10px}
+.rot{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.rot b{font-weight:700}
+.rot .d{color:var(--muted);font-size:11.5px;min-width:38px}
+
+/* chart */
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.lg{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px}
+.lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.lg small{font-size:10.5px}
+.chartbox{position:relative;height:340px;margin-top:6px}
+.pager{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.pager button{min-width:32px;height:30px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);cursor:pointer;font:inherit}
+.pager button.on{background:var(--green2);border-color:var(--green2)}
+.pager button:disabled{opacity:.35;cursor:default}
+
+/* toolbar + table */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line2);background:var(--panel);color:var(--muted);padding:8px 14px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.tab.on{color:var(--text);border-color:var(--green2);background:#0f2219}
+.btn{border:1px solid var(--line2);background:var(--panel2);color:var(--text);padding:8px 12px;border-radius:10px;font:inherit;font-size:13px;cursor:pointer}
+.btn:hover,.tab:hover{border-color:var(--green2)}
+.tablecard{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tablecard.fs{position:fixed;inset:0;z-index:50;border-radius:0;margin:0;display:flex;flex-direction:column}
+.tablecard.fs .scroller{flex:1;max-height:none}
+.fsbar{display:none;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tablecard.fs .fsbar{display:flex}
+.scroller{overflow:auto;max-height:78vh}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1680px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{position:sticky;top:0;z-index:3;background:#101820;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;user-select:none;white-space:nowrap}
+th small{display:block;text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim);font-size:10.5px}
+th.sorted{color:var(--green)}
+tbody tr:hover td{background:#141e28}
+td{background:var(--panel)}
+.stk{position:sticky;left:0;z-index:2} th.stk{z-index:4}
+.stk2{position:sticky;left:42px;z-index:2} th.stk2{z-index:4}
+.stk3{position:sticky;left:116px;z-index:2;box-shadow:6px 0 8px -6px #0008} th.stk3{z-index:4}
+td.rankc{color:var(--muted);width:42px;min-width:42px;font-weight:700}
+td.strc,th.strc{width:74px;min-width:74px}
+.str{display:inline-block;padding:2px 8px;border-radius:7px;font-weight:700;font-size:12px;background:var(--chip);white-space:nowrap}
+.str.s5{background:#0f2a20;color:#7ff0c0}.str.s4{background:#12261c;color:#9fe3b8}.str.s3{background:#2a2810;color:#f0e08a}.str.s2{background:#2a1f10;color:#f6b26b}.str.s1{background:#2a1416;color:#ff9b9b}
+.idc{min-width:150px}
+.idc b{font-size:15px;letter-spacing:.02em;color:var(--text)}
+.idc a{color:var(--text)} .idc a:hover b{color:var(--green)}
+.idc small{display:block}
+.big{font-weight:700;font-size:14px}
+.stocks{min-width:220px;max-width:280px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-size:10.5px;padding:1px 6px;border-radius:5px;background:var(--chip);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.e{color:#ffd88a;border-color:#4d4020}.chip.s{color:#9cc9ff;border-color:#24405e}
+.tag{font-size:9.5px;letter-spacing:.06em;color:var(--dim);font-weight:700;margin-top:5px;display:block}
+.cat{min-width:230px;max-width:300px;font-size:12.5px}
+.cat .ok{color:var(--green);font-weight:600}
+.earn{margin-top:5px;font-size:12px}
+.earn.soon{color:var(--amber);font-weight:700}
+.rot-b{display:inline-block;padding:3px 8px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap;background:var(--chip)}
+.r-lead{background:#0f2a20;color:#7ff0c0}.r-rest{background:#12261c;color:#a8e6c2}.r-imp{background:#10223a;color:#9cc9ff}
+.r-bounce{background:#1e1a33;color:#c5b3ff}.r-weak{background:#2a1f10;color:#f6b26b}.r-lag{background:#2a1416;color:#ff9b9b}.r-neu{background:#1b2631;color:#aab7c4}
+.spark{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:4px}
+.spark span{width:5px;border-radius:1px;background:var(--green2);opacity:.9}
+.spark span.n{background:#7a2a2e}
+.rvmax{color:var(--purple)!important;font-weight:800}
+td small{display:block;margin-top:1px}
+td .big{display:block}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+footer{margin-top:16px;color:var(--muted);font-size:12px;line-height:1.6}
+footer p{margin:4px 0}
+footer details{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+footer summary{cursor:pointer;color:var(--text);font-weight:600}
+footer ul{margin:6px 0 0 18px;padding:0}
+.err{color:var(--amber)}
+@media (max-width:900px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:24px}
+  .status{align-items:flex-start}.meta{text-align:left}
+  .modes .note{margin-left:0}
+  .chartbox{height:280px}
+}
+@media (max-width:520px){
+  .wrap{padding:14px 10px 30px}
+  .card .val{font-size:16px}
+  .stk,.stk2{position:static}
+  .stk3{left:0}
+  .idc{min-width:118px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Portfolio Rotation Dashboard</div>
+      <h1>US Sector Rotation</h1>
+      <p class="lede">Performance tuyệt đối · RS vs SPY · ETF Net Flow USD thực từ ETFIQ · A/D proxy tách riêng</p>
+    </div>
+    <div class="status">
+      <span id="badge" class="badge"><span class="dot"></span><span>Đang kết nối dữ liệu…</span></span>
+      <div id="meta" class="meta"></div>
+    </div>
+  </header>
+
+  <div class="modes">
+    <div class="seg" id="modes">
+      <button data-mode="auto" class="on">Tự động</button>
+      <button data-mode="pre">Pre-market</button>
+      <button data-mode="regular">Phiên chính</button>
+    </div>
+    <span class="note">Pre-market 04:00–09:30 New York · tự chuyển về phiên chính lúc mở cửa</span>
+  </div>
+
+  <section class="cards" id="cards">
+    <div class="card"><div class="lbl">Dẫn dắt</div><div class="val">—</div><small>Đang tải…</small></div>
+    <div class="card"><div class="lbl">Yếu nhất</div><div class="val">—</div><small>Đang tải…</small></div>
+    <div class="card"><div class="lbl">SPY</div><div class="val">—</div><small>Benchmark đang tải</small></div>
+    <div class="card"><div class="lbl">Tự động</div><div class="val">60 giây/lần</div><small>Giữ nguyên universe</small></div>
+  </section>
+
+  <section class="panel" id="rotPanel"></section>
+  <p class="explain" id="explain"></p>
+
+  <section class="panel" id="chartPanel">
+    <div class="ph">
+      <div><h2>Bản đồ performance ngành</h2><div class="sub" id="chartSub">15 phiên chính</div></div>
+      <span class="pill ok" id="chartTag">MAIN SECTORS</span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+    <div class="rule" id="chartNote"></div>
+    <div class="pager" id="pager"></div>
+  </section>
+
+  <div class="toolbar">
+    <nav class="tabs">
+      <button class="tab on" data-tab="main" id="tabMain">Main Sectors · 11</button>
+      <button class="tab" data-tab="sub" id="tabSub">ETF Sub-sections · 48</button>
+    </nav>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="refresh">Cập nhật ngay</button>
+      <button class="btn" id="fullscreen">Toàn màn hình</button>
+    </div>
+  </div>
+
+  <section class="tablecard" id="tablecard">
+    <div class="fsbar"><b id="fsTitle">Main Sectors</b><button class="btn" id="fsClose">Thoát toàn màn hình</button></div>
+    <div class="scroller"><div class="loading" id="tableBox">Đang lấy dữ liệu cho danh mục ETF…</div></div>
+  </section>
+
+  <footer>
+    <p>Nguồn giá: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>. Ngày BCTC cổ phiếu đại diện: <a href="https://www.tradingview.com/markets/stocks-usa/earnings/" target="_blank" rel="noopener">TradingView Earnings</a>. ETF Net Flow: <a href="https://etfiq.com/data/" target="_blank" rel="noopener">ETFIQ Open Data</a>. Perpetual: <a href="https://www.bybit.com/en/markets/tradfi/perpetual/stock/" target="_blank" rel="noopener">Bybit Stock</a> / <a href="https://www.bybit.com/en/markets/tradfi/perpetual/etf/" target="_blank" rel="noopener">Bybit ETF</a>.</p>
+    <p id="coverage">Đang tải coverage ETFIQ. Đang tải danh mục Bybit.</p>
+    <p>Catalyst được xác nhận khi RS 1W và ETF Net Flow 10 phiên cùng dương. Ngày BCTC là lịch sự kiện riêng của cổ phiếu đại diện đầu tiên, có thể là ngày ước tính và không dùng làm catalyst.</p>
+    <p>A/D Proxy là tín hiệu price-volume riêng, không dùng thay cho flow còn thiếu. Dữ liệu giá theo phiên hoàn tất; ETFIQ có thể trễ T+1.</p>
+    <p id="errs" class="err"></p>
+    <details>
+      <summary>Phương pháp tính</summary>
+      <ul>
+        <li><b>Perf</b> ngày / 3D / 1W / 1M = giá đóng cửa điều chỉnh so với 1 / 3 / 5 / 21 phiên trước. <b>RS</b> = Perf ETF − Perf SPY cùng khung.</li>
+        <li><b>Điểm</b> = 0,15 × RS ngày + 0,35 × RS 1W + 0,50 × RS 1M. Xếp hạng theo điểm; <b>Sức mạnh /5</b> chia theo vị trí xếp hạng trong nhóm (top 20% = 5/5 … đáy = 1/5).</li>
+        <li><b>Rotation</b>: RS 1W &gt; 0 &amp; RS 1M &gt; 0 → Leading mạnh (RS ngày &gt; 0) / Leading bền · nghỉ; RS 1W &gt; 0 &amp; RS 1M ≤ 0 → Improving ngắn hạn (RS ngày &gt; 0) / Trung tính; RS 1W ≤ 0 &amp; RS ngày &gt; 0 → Hồi kỹ thuật; còn lại → Weakening (RS 1M &gt; 0) / Lagging.</li>
+        <li><b>RS vs SPY 10 phiên</b> = Perf 10 phiên ETF − SPY; mũi tên so với 3 phiên trước.</li>
+        <li><b>RVOL</b> = Volume / TB 20 phiên trước. TB10 = trung bình 10 phiên, Δ5 = so với 5 phiên trước. Màu tím = RVOL cao nhất nhóm.</li>
+        <li><b>A/D Proxy</b> mỗi phiên = CLV × min(RVOL, 3), CLV = ((C − L) − (H − C)) / (H − L). Σ10 = tổng 10 phiên, 3P = tổng 3 phiên gần nhất.</li>
+        <li><b>Rotation phiên / pre-market</b>: ETF yếu nhất ≤ −1%, ETF mạnh nhất ≥ +0,5%, spread ≥ 2 điểm %. Pre-market cần ≥ 80% ETF có giá trễ ≤ 20 phút.</li>
+        <li>Dữ liệu được GitHub Actions lấy lại khoảng mỗi 5 phút trong giờ pre-market/phiên chính (lịch của GitHub có thể chậm vài phút); trang tự tải lại mỗi 60 giây.</li>
+      </ul>
+    </details>
+  </footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const DATA_URL = "data/rotation.json";
+const PAGE = 6;
+const COLORS = ["#3ddc97", "#5aa9ff", "#f4b740", "#b48cff", "#ff8fa3", "#4dd4e6"];
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+const S = { data: null, mode: store.get("rot.mode", "auto"), tab: store.get("rot.tab", "main"),
+            sortKey: null, sortDir: -1, page: 0, chart: null, loadedAt: null, error: null };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ---------- formatting (vi-VN, dấu phẩy thập phân, dấu trừ “−”)
+const nf = (d) => new Intl.NumberFormat("vi-VN", { minimumFractionDigits: d, maximumFractionDigits: d });
+const NF = [nf(0), nf(1), nf(2)];
+const sign = (v) => (v > 0 ? "+" : v < 0 ? "−" : "");
+const isNum = (v) => typeof v === "number" && isFinite(v);
+const fp = (v, d = 2) => (isNum(v) ? sign(v) + NF[d].format(Math.abs(v)) + "%" : "N/A");
+const fn = (v, d = 2) => (isNum(v) ? sign(v) + NF[d].format(Math.abs(v)) : "N/A");
+const fx = (v) => (isNum(v) ? NF[2].format(v) + "×" : "N/A");
+const cls = (v) => (!isNum(v) ? "flat" : v > 0 ? "pos" : v < 0 ? "neg" : "flat");
+function fusd(v) {
+  if (!isNum(v)) return "N/A";
+  const a = Math.abs(v); let s;
+  if (a >= 1e9) s = "$" + NF[1].format(a / 1e9) + "B";
+  else if (a >= 1e8) s = "$" + NF[0].format(a / 1e6) + "M";
+  else if (a >= 1e6) s = "$" + NF[1].format(a / 1e6) + "M";
+  else s = "$" + NF[0].format(a / 1e3) + "K";
+  return sign(v) + s;
+}
+const dmy = (iso) => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "—");
+const etTime = (iso) => (iso ? new Intl.DateTimeFormat("en-GB", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)) + " ET" : "—");
+function localStamp(d) {
+  const off = -d.getTimezoneOffset() / 60;
+  const t = d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${t} UTC${off >= 0 ? "+" : "−"}${Math.abs(off)}`;
+}
+
+// ---------- state helpers
+function preView() {
+  const d = S.data; if (!d) return false;
+  if (S.mode === "regular") return false;
+  if (S.mode === "pre") return true;
+  return d.session === "premarket" && d.preMarket && d.preMarket.active;
+}
+const rows = () => (S.data ? S.data[S.tab] || [] : []);
+const tabLabel = () => (S.tab === "main" ? "MAIN SECTORS" : "ETF SUB-SECTIONS");
+const preOf = (x) => x.pre || { status: "none" };
+
+// ---------- header
+function renderHeader() {
+  const d = S.data, b = $("badge");
+  if (!d) return;
+  const ageMin = (Date.now() - new Date(d.updatedAt).getTime()) / 60000;
+  let cls = "badge done", txt = "Phiên đã hoàn tất";
+  if (d.session === "premarket") { cls = "badge live"; txt = d.preMarket.active ? "Pre-market · đang hình thành" : "Pre-market · chưa có giá"; }
+  else if (d.session === "regular") { cls = "badge live"; txt = "Phiên chính · đang giao dịch"; }
+  if (d.session !== "completed" && ageMin > 30) { cls = "badge warn"; txt += ` · dữ liệu trễ ${Math.round(ageMin)} phút`; }
+  b.className = cls; b.innerHTML = `<span class="dot"></span><span>${esc(txt)}</span>`;
+  const upd = localStamp(new Date(d.updatedAt));
+  $("meta").textContent = d.session === "premarket"
+    ? `Pre ${dmy(d.preMarket.date)} · phiên chính ${dmy(d.asOf)} · cập nhật ${upd}`
+    : `Phiên ${dmy(d.asOf)}${d.session === "regular" ? " (đang chạy)" : ""} · cập nhật ${upd}`;
+  document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === S.mode));
+}
+
+// ---------- summary cards
+function card(lbl, val, sub, tone) {
+  return `<div class="card"><div class="lbl">${esc(lbl)}</div><div class="val ${tone || ""}">${val}</div><small>${sub}</small></div>`;
+}
+function renderCards() {
+  const d = S.data; if (!d) return;
+  const r = rows(), pre = preView(), html = [];
+  if (pre) {
+    const v = r.filter((x) => isNum(preOf(x).rs)).sort((a, b) => b.pre.rs - a.pre.rs);
+    html.push(card("Dẫn dắt pre-market", v.length ? v.slice(0, 3).map((x) => x.ticker).join(" · ") : "—", "Xếp theo RS pre vs SPY", "g"));
+    html.push(card("Yếu nhất pre-market", v.length ? v.slice(-3).reverse().map((x) => x.ticker).join(" · ") : "—", "Chỉ xếp mã có RS pre hợp lệ", "r"));
+    const bq = d.preMarket.benchmark;
+    html.push(card("SPY pre-market", bq && isNum(bq.perf) ? `<span class="${cls(bq.perf)}">${fp(bq.perf)}</span>` : "N/A",
+      bq && bq.asOf ? `Giá nguồn ${etTime(bq.asOf)}` : "Chưa có giá pre hôm nay"));
+    html.push(card("Tự động", "60 giây/lần", "Giá Yahoo nến 5 phút · có thể trễ"));
+  } else {
+    const v = r.filter((x) => isNum(x.rank)).sort((a, b) => a.rank - b.rank);
+    html.push(card("Dẫn dắt", v.slice(0, 3).map((x) => x.ticker).join(" · ") || "—", "Ưu tiên RS 1W và 1M (điểm RS đa khung)", "g"));
+    html.push(card("Yếu nhất", v.slice(-3).reverse().map((x) => x.ticker).join(" · ") || "—", "RS đa khung thấp nhất", "r"));
+    const bm = d.benchmark;
+    html.push(card("SPY", `<span class="${cls(bm.perfD)}">${fp(bm.perfD)}</span>`, `1W ${fp(bm.perfW)} · 1M ${fp(bm.perfM)} · giá ${NF[2].format(bm.price)}`));
+    html.push(card("Tự động", "60 giây/lần", "Giữ nguyên universe, tự bổ sung dữ liệu"));
+  }
+  $("cards").innerHTML = html.join("");
+}
+
+// ---------- rotation panel
+function renderRotation() {
+  const d = S.data, p = $("rotPanel"); if (!d) return;
+  const total = rows().length;
+  if (preView()) {
+    const pm = d.preMarket, rot = pm.rotations ? pm.rotations[S.tab] : null;
+    const cov = pm.coverage ? pm.coverage[S.tab] : 0;
+    const ok = rot && rot.confirmed;
+    let body;
+    if (!pm.active) body = `<div class="callout">Chưa có giá pre-market hôm nay (ngoài giờ 04:00–09:30 ET hoặc ngày nghỉ).</div>`;
+    else if (ok) body = `<div class="callout ok">Rotation pre-market: <b class="neg">${rot.from} ${fp(rot.fromPerf)}</b> → <b class="pos">${rot.to} ${fp(rot.toPerf)}</b> · spread ${NF[2].format(rot.spread)} điểm %</div>`;
+    else body = `<div class="callout">Chưa đủ giá mới để ghi nhận rotation${rot ? ` <span class="sub">· yếu nhất ${rot.from} ${fp(rot.fromPerf)} · mạnh nhất ${rot.to} ${fp(rot.toPerf)} · spread ${NF[2].format(rot.spread)} điểm %</span>` : ""}</div>`;
+    p.innerHTML = `<div class="ph"><div><h2>Pre-market rotation · ${tabLabel()}</h2>
+      <div class="sub">${dmy(pm.date)} · ${cov}/${total} ETF có RS cùng nến 5 phút với SPY</div></div>
+      <span class="pill ${ok ? "ok" : "wait"}">${ok ? "Đã xác nhận" : "Đang hình thành"}</span></div>${body}
+      <div class="rule">Perf pre = giá pre-market / đóng cửa phiên chính trước − 1. RS pre = Perf pre ETF − SPY cùng nến 5 phút. Nguồn ≤ −1%, đích ≥ +0,5%, spread ≥ 2 điểm %, ít nhất 80% ETF có giá trễ không quá 20 phút. Tín hiệu tạm thời.</div>`;
+    $("explain").textContent = `Perf pre, RS pre và điểm PRE trên chart cập nhật theo giá trước mở cửa. Sức mạnh /5, Perf 3D–1W–1M, RVOL và A/D là bối cảnh phiên chính đến ${dmy(d.asOf)}. ETFIQ là net flow công bố theo ngày.`;
+    $("explain").style.display = "";
+  } else {
+    const list = (S.tab === "main" ? d.dailyRotations : d.subDailyRotations) || [];
+    const latest = list[0];
+    p.innerHTML = `<div class="ph"><div><h2>Rotation theo phiên · ${tabLabel()}</h2>
+      <div class="sub">${list.length} phiên gần nhất · ETF yếu nhất → mạnh nhất trong ngày</div></div>
+      <span class="pill ${latest && latest.confirmed ? "ok" : "wait"}">${latest ? (latest.confirmed ? "Phiên gần nhất: xác nhận" : "Phiên gần nhất: chưa đạt") : "—"}</span></div>
+      <div class="rotlist">${list.map((r) => `<div class="rot"><span class="d">${r.date.slice(8, 10)}/${r.date.slice(5, 7)}</span>
+        <span><b class="neg">${r.from}</b> <small>${fp(r.fromPerf)}</small> → <b class="pos">${r.to}</b> <small>${fp(r.toPerf)}</small></span>
+        <span class="pill ${r.confirmed ? "ok" : "no"}" title="spread ${NF[2].format(r.spread)} điểm %">${r.confirmed ? "✓" : "✗"} ${NF[1].format(r.spread)}</span></div>`).join("")}</div>
+      <div class="rule">Xác nhận khi ETF nguồn ≤ −1%, ETF đích ≥ +0,5% và spread ≥ 2 điểm % trong cùng phiên.</div>`;
+    $("explain").style.display = "none";
+  }
+}
+
+// ---------- chart
+function chartSeries() {
+  const r = rows(), pre = preView();
+  const d = S.data;
+  return r.filter((x) => Array.isArray(x.perf15) && x.perf15.length).map((x) => {
+    const last = x.perf15[x.perf15.length - 1];
+    const q = preOf(x);
+    const prePt = pre && isNum(q.perf) && isNum(last) ? ((1 + last / 100) * (1 + q.perf / 100) - 1) * 100 : null;
+    return { t: x.ticker, vals: x.perf15, pre: prePt, latest: prePt ?? last, asOf: q.asOf, status: q.status, labels: x.dates15 };
+  });
+}
+function pagesOf(series) {
+  const s = series.slice().sort((a, b) => b.latest - a.latest);
+  if (s.length <= PAGE) return [s];
+  const first = s.slice(0, PAGE - 1).concat([s[s.length - 1]]);
+  const rest = s.slice(PAGE - 1, s.length - 1);
+  const out = [first];
+  for (let i = 0; i < rest.length; i += PAGE) out.push(rest.slice(i, i + PAGE));
+  return out;
+}
+function renderChart() {
+  const d = S.data; if (!d || typeof Chart === "undefined") { if (typeof Chart === "undefined") $("chartNote").textContent = "Không tải được Chart.js (kiểm tra kết nối)."; return; }
+  const pre = preView();
+  const series = chartSeries(); if (!series.length) return;
+  const pages = pagesOf(series);
+  if (S.page >= pages.length) S.page = 0;
+  const cur = pages[S.page];
+  const labels = series[0].labels.slice();
+  if (pre) labels.push(`${dmy(d.preMarket.date).slice(0, 5)} PRE`);
+  $("chartTag").textContent = tabLabel();
+  $("chartSub").textContent = pre
+    ? "15 phiên chính + điểm PRE hôm nay · đoạn nét đứt đang hình thành · cập nhật mỗi 60 giây theo nguồn"
+    : `15 phiên chính đến ${dmy(d.asOf)} · performance lũy kế từ phiên đầu`;
+  $("legend").innerHTML = cur.map((s, i) => {
+    const late = s.status === "delayed" || s.status === "stale";
+    return `<span class="lg"><i style="background:${COLORS[i]}"></i><b>${s.t}</b> <span class="${cls(s.latest)} num">${fp(s.latest)}</span>${pre && s.asOf ? ` <small>${etTime(s.asOf)}${late ? " · trễ" : ""}</small>` : ""}</span>`;
+  }).join("");
+  $("chartNote").textContent = pre
+    ? `Giá trị PRE là performance lũy kế nối tiếp cùng giá gốc của chart. Thời gian bên mỗi mã là giờ giá nguồn; dữ liệu có thể trễ. Lần tải: ${localStamp(S.loadedAt || new Date())}.`
+    : `Trang ${S.page + 1}/${pages.length}: trang đầu gồm 5 mã mạnh nhất + mã yếu nhất.`;
+  const datasets = cur.map((s, i) => ({
+    label: s.t,
+    data: pre ? s.vals.concat([s.pre]) : s.vals,
+    borderColor: COLORS[i], backgroundColor: COLORS[i], borderWidth: 2, tension: 0.3,
+    pointRadius: (c) => (pre && c.dataIndex === labels.length - 1 ? 4 : 0), pointHoverRadius: 4,
+    spanGaps: false,
+    segment: { borderDash: (c) => (pre && c.p1DataIndex === labels.length - 1 ? [5, 4] : undefined) },
+  }));
+  const opts = {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: { legend: { display: false },
+      tooltip: { backgroundColor: "#0b1117", borderColor: "#2c3c4b", borderWidth: 1,
+        callbacks: { label: (c) => ` ${c.dataset.label}: ${fp(c.parsed.y)}` } } },
+    scales: {
+      x: { grid: { color: "#1b2631" }, ticks: { color: "#8a99a8", font: { size: 11 }, maxRotation: 0, autoSkip: true } },
+      y: { position: "right", grid: { color: (c) => (c.tick.value === 0 ? "#3a4b5c" : "#1b2631") },
+           ticks: { color: "#8a99a8", font: { size: 11 }, callback: (v) => fp(v, 0) } },
+    },
+  };
+  if (S.chart) { S.chart.data.labels = labels; S.chart.data.datasets = datasets; S.chart.update(); }
+  else S.chart = new Chart($("chart"), { type: "line", data: { labels, datasets }, options: opts });
+  const pg = $("pager");
+  pg.innerHTML = `<button data-p="prev" ${S.page === 0 ? "disabled" : ""}>‹</button>` +
+    pages.map((_, i) => `<button data-p="${i}" class="${i === S.page ? "on" : ""}">${i + 1}</button>`).join("") +
+    `<button data-p="next" ${S.page === pages.length - 1 ? "disabled" : ""}>›</button>`;
+}
+
+// ---------- table
+const ROT_CLS = { "Leading mạnh": "r-lead", "Leading bền / nghỉ": "r-rest", "Improving ngắn hạn": "r-imp",
+  "Hồi kỹ thuật": "r-bounce", "Weakening": "r-weak", "Lagging": "r-lag", "Trung tính": "r-neu" };
+const STR_ICON = { 5: "🟩", 4: "🟢", 3: "🟨", 2: "🟧", 1: "🟥" };
+function cols(pre) {
+  const c = [
+    { k: "rank", h: "#", cls: "stk rankc", sort: (x) => -(x.rank ?? 999) },
+    { k: "strength", h: "Sức mạnh", cls: "stk2 strc", sort: (x) => x.strength ?? -1 },
+    { k: "ticker", h: "Mã / Sector", cls: "stk3 idc", sort: (x) => x.ticker, str: true },
+  ];
+  if (pre) c.push(
+    { k: "pperf", h: "Perf pre", s: "vs đóng cửa trước", sort: (x) => preOf(x).perf },
+    { k: "prs", h: "RS pre vs SPY", s: "cùng nến 5 phút", sort: (x) => preOf(x).rs });
+  c.push(
+    { k: "stocks", h: "Stock đại diện", s: "vốn hóa & thanh khoản", cls: "stocks", nosort: true },
+    { k: "cat", h: "Catalyst", s: "động lực + ngày BCTC", cls: "cat", sort: (x) => x.earningsDate || "9999", str: true, asc: true },
+    { k: "perfD", h: pre ? "Perf ngày trước" : "Perf ngày", sort: (x) => x.perfD },
+    { k: "perf3D", h: "Perf 3D", sort: (x) => x.perf3D },
+    { k: "perfW", h: "Perf 1W", sort: (x) => x.perfW },
+    { k: "perfM", h: "Perf 1M", sort: (x) => x.perfM },
+    { k: "rs10", h: "RS vs SPY", s: "10 phiên", sort: (x) => (x.rs10 || [])[9] },
+    { k: "rvol", h: "Relative RVOL", s: "10 phiên · tím = mạnh nhất", sort: (x) => x.rvol },
+    { k: "flow", h: "ETF Net Flow 10 phiên", s: "USD thực · ETFIQ", sort: (x) => x.etfFlowTotal10 },
+    { k: "ad", h: "A/D Proxy phụ", s: "price-volume · 10 phiên", sort: (x) => x.adProxy10Total },
+    { k: "rot", h: "Rotation", sort: (x) => x.rotation, str: true });
+  return c;
+}
+function spark(arr) {
+  const v = (arr || []).filter(isNum); if (!v.length) return "";
+  const m = Math.max(...v.map(Math.abs)) || 1;
+  return `<div class="spark">${arr.map((x) => isNum(x) ? `<span class="${x < 0 ? "n" : ""}" style="height:${Math.max(2, Math.round(Math.abs(x) / m * 22))}px"></span>` : `<span style="height:1px"></span>`).join("")}</div>`;
+}
+function preCell(x, kind) {
+  const q = preOf(x);
+  if (kind === "perf") {
+    if (!isNum(q.perf)) return `<span class="flat big">N/A</span><small>Chưa có giá pre hôm nay</small>`;
+    const late = q.status !== "live" ? " · giá trễ" : "";
+    return `<span class="big ${cls(q.perf)}">${fp(q.perf)}</span><small>${etTime(q.asOf)}${late}</small><small>Vol pre ${q.volume ? NF[0].format(q.volume) : "N/A"}</small>`;
+  }
+  if (!isNum(q.rs)) return `<span class="flat big">N/A</span><small>${q.status === "none" ? "Chưa có giá pre hôm nay" : "Thiếu nến SPY / giá quá 60 phút"}</small>`;
+  return `<span class="big ${cls(q.rs)}">${fp(q.rs)}</span><small>vs SPY · cùng nến 5m${q.status !== "live" ? " · giá trễ" : ""}</small>`;
+}
+function cell(c, x, ctx) {
+  switch (c.k) {
+    case "rank": return ctx.i + 1;
+    case "strength": return isNum(x.strength) ? `<span class="str s${x.strength}">${STR_ICON[x.strength]} ${x.strength}/5</span>` : "—";
+    case "ticker": return `<a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(x.ticker)}" target="_blank" rel="noopener"><b>${x.ticker}</b></a><small>${esc(x.name)}</small><small class="num">Điểm ${fn(x.score)}</small>`;
+    case "pperf": return preCell(x, "perf");
+    case "prs": return preCell(x, "rs");
+    case "stocks": {
+      let h = `<div>${esc(x.stocks)}</div>`;
+      if (x.bybitEtfPerp) h += `<span class="tag">BYBIT ETF</span><div class="chips"><span class="chip e">${x.bybitEtfPerp}</span></div>`;
+      if (x.bybitStockPerps && x.bybitStockPerps.length) h += `<span class="tag">BYBIT STOCK</span><div class="chips">${x.bybitStockPerps.map((s) => `<span class="chip s">${s.symbol}</span>`).join("")}</div>`;
+      return h;
+    }
+    case "cat": {
+      const txt = esc(x.catalyst || "");
+      const t = x.catalystConfirmed ? txt.replace(/^RS \+ net flow xác nhận:/, '<span class="ok">RS + net flow xác nhận:</span>') : txt;
+      let e = "";
+      if (x.earningsTicker) {
+        const days = x.earningsDate ? (new Date(x.earningsDate + "T12:00:00Z") - Date.now()) / 864e5 : null;
+        const soon = days != null && days <= 14;
+        e = `<span class="tag">NGÀY BCTC</span><div class="earn ${soon ? "soon" : ""}">${esc(x.earningsTicker)} · ${x.earningsDate ? dmy(x.earningsDate) : "chưa có lịch"}${soon ? ` · còn ${Math.max(0, Math.ceil(days))} ngày` : ""}</div>`;
+      }
+      return `<div>${t}</div>${e}`;
+    }
+    case "perfD": case "perf3D": case "perfW": case "perfM": return `<span class="num ${cls(x[c.k])}">${fp(x[c.k])}</span>`;
+    case "rs10": {
+      const r = x.rs10 || [], last = r[r.length - 1];
+      const up = x.rsTrend === "up";
+      return `<span class="big num ${cls(last)}">${fp(last)}</span><small>10 phiên · ${up ? "↑ mạnh dần" : "↓ yếu dần"}</small>${spark(r)}`;
+    }
+    case "rvol": {
+      const r = (x.rvol10 || []).filter(isNum);
+      const avg = r.length ? r.reduce((a, b) => a + b, 0) / r.length : null;
+      const r10 = x.rvol10 || [];
+      const d5 = isNum(r10[9]) && isNum(r10[4]) && r10[4] ? (r10[9] / r10[4] - 1) * 100 : null;
+      return `<span class="big num ${x.rvol === ctx.maxRvol ? "rvmax" : ""}">${fx(x.rvol)}</span><small>TB10 ${fx(avg)} · Δ5 ${fp(d5, 0)}</small>`;
+    }
+    case "flow": {
+      if (x.etfFlowCoverage === "daily")
+        return `<span class="big num ${cls(x.etfFlowTotal10)}">${fusd(x.etfFlowTotal10)}</span><small>Σ10 · 3P ${fusd(x.etfFlow3)}</small><small>ETFIQ · as of ${dmy(x.etfFlowAsOf)}</small>${spark(x.etfFlow10)}`;
+      if (x.etfFlowCoverage === "monthly")
+        return `<span class="flat">Chỉ có flow tháng</span><small>${esc(x.etfFlowAsOf || "")}: <span class="${cls(x.etfFlowMonthly)}">${fusd(x.etfFlowMonthly)}</span></small>`;
+      return `<span class="flat">N/A</span><small>ETFIQ chưa có dữ liệu</small>`;
+    }
+    case "ad": return `<span class="big num ${cls(x.adProxy10Total)}">${fn(x.adProxy10Total)}</span><small>Σ10 · 3P ${fn(x.adProxy3)}</small>`;
+    case "rot": return `<span class="rot-b ${ROT_CLS[x.rotation] || "r-neu"}">${esc(x.rotation)}</span>`;
+  }
+  return "";
+}
+function renderTable() {
+  const d = S.data; if (!d) return;
+  const pre = preView(), C = cols(pre);
+  let key = S.sortKey, dir = S.sortDir;
+  if (!key || !C.find((c) => c.k === key)) { key = pre ? "prs" : "rank"; dir = -1; }
+  const col = C.find((c) => c.k === key);
+  const list = rows().slice().sort((a, b) => {
+    let va = col.sort(a), vb = col.sort(b);
+    const na = va == null || (typeof va === "number" && !isFinite(va)), nb = vb == null || (typeof vb === "number" && !isFinite(vb));
+    if (na && nb) return (a.rank ?? 99) - (b.rank ?? 99);
+    if (na) return 1; if (nb) return -1;
+    const cmp = col.str ? String(va).localeCompare(String(vb)) : vb - va;
+    return cmp * (dir === -1 ? 1 : -1);
+  });
+  const maxRvol = Math.max(...rows().map((x) => (isNum(x.rvol) ? x.rvol : -1)));
+  const head = C.map((c) => `<th class="${c.cls || ""} ${c.k === key ? "sorted" : ""}" data-k="${c.nosort ? "" : c.k}">${c.h}${c.k === key ? (dir === -1 ? " ↓" : " ↑") : ""}${c.s ? `<small>${c.s}</small>` : ""}</th>`).join("");
+  const body = list.map((x, i) => `<tr>${C.map((c) => `<td class="${c.cls || ""}">${cell(c, x, { i, maxRvol })}</td>`).join("")}</tr>`).join("");
+  const box = document.querySelector("#tablecard .scroller");
+  const sx = box.scrollLeft, sy = box.scrollTop;
+  box.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  box.scrollLeft = sx; box.scrollTop = sy;
+  $("tabMain").textContent = `Main Sectors · ${d.main.length}`;
+  $("tabSub").textContent = `ETF Sub-sections · ${d.sub.length}`;
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === S.tab));
+  $("fsTitle").textContent = S.tab === "main" ? "Main Sectors" : "ETF Sub-sections";
+}
+
+function renderFooter() {
+  const d = S.data; if (!d) return;
+  const c = d.etfFlowCoverage || {}, b = d.bybitPerpCoverage || {};
+  $("coverage").textContent = `Coverage ETFIQ: ${c.daily || 0} daily · ${c.monthly || 0} monthly only · ${c.unavailable || 0} unavailable. ` +
+    `Bybit (${d.bybitPerpSource}): ${b.stock || 0} Stock · ${b.etf || 0} ETF Perpetual trong universe.`;
+  $("errs").textContent = d.errors && d.errors.length ? `⚠ ${d.errors.length} lỗi nguồn ở lần cập nhật gần nhất: ${d.errors.slice(0, 4).join(" | ")}` : "";
+}
+
+function renderAll() {
+  if (!S.data) return;
+  renderHeader(); renderCards(); renderRotation(); renderChart(); renderTable(); renderFooter();
+}
+
+// ---------- data
+async function load(manual) {
+  try {
+    const r = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    S.data = await r.json(); S.loadedAt = new Date(); S.error = null;
+    renderAll();
+  } catch (e) {
+    S.error = e;
+    if (!S.data) {
+      $("tableBox") && ($("tableBox").textContent = "Chưa có dữ liệu. Nếu repo vừa tạo, đợi GitHub Actions chạy lần đầu (~2 phút) rồi tải lại.");
+      $("badge").innerHTML = `<span class="dot"></span><span>Không tải được dữ liệu</span>`; $("badge").className = "badge warn";
+    }
+  }
+}
+
+// ---------- events
+$("modes").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.mode = b.dataset.mode; store.set("rot.mode", S.mode); S.sortKey = null; S.page = 0; renderAll();
+});
+document.querySelector(".tabs").addEventListener("click", (e) => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  S.tab = b.dataset.tab; store.set("rot.tab", S.tab); S.page = 0; renderAll();
+});
+$("pager").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b || b.disabled) return;
+  const p = b.dataset.p; S.page = p === "prev" ? S.page - 1 : p === "next" ? S.page + 1 : +p; renderChart();
+});
+$("tablecard").addEventListener("click", (e) => {
+  const th = e.target.closest("th"); if (!th || !th.dataset.k) return;
+  const k = th.dataset.k;
+  const curKey = S.sortKey || (preView() ? "prs" : "rank");
+  if (curKey === k) S.sortDir = -S.sortDir; else { S.sortKey = k; S.sortDir = -1; }
+  S.sortKey = k; renderTable();
+});
+$("refresh").addEventListener("click", () => load(true));
+function toggleFs(on) {
+  const el = $("tablecard");
+  el.classList.toggle("fs", on);
+  document.body.style.overflow = on ? "hidden" : "";
+}
+$("fullscreen").addEventListener("click", () => toggleFs(true));
+$("fsClose").addEventListener("click", () => toggleFs(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleFs(false); });
+
+load();
+setInterval(load, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+})();
+</script>
+</body>
+</html>
