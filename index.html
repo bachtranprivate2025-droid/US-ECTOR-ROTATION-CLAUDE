@@ -162,7 +162,7 @@ footer ul{margin:6px 0 0 18px;padding:0}
     <div>
       <div class="kicker">Portfolio Rotation Dashboard</div>
       <h1>US Sector Rotation</h1>
-      <p class="lede">Performance tuyệt đối · RS vs SPY · ETF Net Flow USD thực từ ETFIQ · A/D proxy tách riêng</p>
+      <p class="lede">Performance tuyệt đối · RS vs SPY · ETF Net Flow USD thực từ ETFIQ</p>
     </div>
     <div class="status">
       <span id="badge" class="badge"><span class="dot"></span><span>Đang kết nối dữ liệu…</span></span>
@@ -220,17 +220,15 @@ footer ul{margin:6px 0 0 18px;padding:0}
     <p>Nguồn giá: <a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a>. Ngày BCTC cổ phiếu đại diện: <a href="https://www.tradingview.com/markets/stocks-usa/earnings/" target="_blank" rel="noopener">TradingView Earnings</a>. ETF Net Flow: <a href="https://etfiq.com/data/" target="_blank" rel="noopener">ETFIQ Open Data</a>. Perpetual: <a href="https://www.bybit.com/en/markets/tradfi/perpetual/stock/" target="_blank" rel="noopener">Bybit Stock</a> / <a href="https://www.bybit.com/en/markets/tradfi/perpetual/etf/" target="_blank" rel="noopener">Bybit ETF</a>.</p>
     <p id="coverage">Đang tải coverage ETFIQ. Đang tải danh mục Bybit.</p>
     <p>Catalyst được xác nhận khi RS 1W và ETF Net Flow 10 phiên cùng dương. Ngày BCTC là lịch sự kiện riêng của cổ phiếu đại diện đầu tiên, có thể là ngày ước tính và không dùng làm catalyst.</p>
-    <p>A/D Proxy là tín hiệu price-volume riêng, không dùng thay cho flow còn thiếu. Dữ liệu giá theo phiên hoàn tất; ETFIQ có thể trễ T+1.</p>
     <p id="errs" class="err"></p>
     <details>
       <summary>Phương pháp tính</summary>
       <ul>
-        <li><b>Perf</b> ngày / 3D / 1W / 1M = giá đóng cửa điều chỉnh so với 1 / 3 / 5 / 21 phiên trước. <b>RS</b> = Perf ETF − Perf SPY cùng khung.</li>
+        <li><b>Perf hôm nay</b> = giá hiện tại / đóng cửa phiên trước − 1 (giờ pre-market dùng giá pre). Điểm vẫn tính từ Perf ngày / 1W / 1M. <b>RS</b> = Perf ETF − Perf SPY cùng khung.</li>
         <li><b>Điểm</b> = 0,15 × RS ngày + 0,35 × RS 1W + 0,50 × RS 1M. Xếp hạng theo điểm; <b>Sức mạnh /5</b> chia theo vị trí xếp hạng trong nhóm (top 20% = 5/5 … đáy = 1/5).</li>
         <li><b>Rotation</b>: RS 1W &gt; 0 &amp; RS 1M &gt; 0 → Leading mạnh (RS ngày &gt; 0) / Leading bền · nghỉ; RS 1W &gt; 0 &amp; RS 1M ≤ 0 → Improving ngắn hạn (RS ngày &gt; 0) / Trung tính; RS 1W ≤ 0 &amp; RS ngày &gt; 0 → Hồi kỹ thuật; còn lại → Weakening (RS 1M &gt; 0) / Lagging.</li>
         <li><b>RS vs SPY 10 phiên</b> = Perf 10 phiên ETF − SPY; mũi tên so với 3 phiên trước.</li>
         <li><b>RVOL</b> = Volume / TB 20 phiên trước. TB10 = trung bình 10 phiên, Δ5 = so với 5 phiên trước. Màu tím = RVOL cao nhất nhóm.</li>
-        <li><b>A/D Proxy</b> mỗi phiên = CLV × min(RVOL, 3), CLV = ((C − L) − (H − C)) / (H − L). Σ10 = tổng 10 phiên, 3P = tổng 3 phiên gần nhất.</li>
         <li><b>Rotation phiên / pre-market</b>: ETF yếu nhất ≤ −1%, ETF mạnh nhất ≥ +0,5%, spread ≥ 2 điểm %. Pre-market cần ≥ 80% ETF có giá trễ ≤ 20 phút.</li>
         <li>Dữ liệu được GitHub Actions lấy lại khoảng mỗi 5 phút trong giờ pre-market/phiên chính (lịch của GitHub có thể chậm vài phút); trang tự tải lại mỗi 60 giây.</li>
       </ul>
@@ -349,7 +347,7 @@ function renderRotation() {
       <div class="sub">${dmy(pm.date)} · ${cov}/${total} ETF có RS cùng nến 5 phút với SPY</div></div>
       <span class="pill ${ok ? "ok" : "wait"}">${ok ? "Đã xác nhận" : "Đang hình thành"}</span></div>${body}
       <div class="rule">Perf pre = giá pre-market / đóng cửa phiên chính trước − 1. RS pre = Perf pre ETF − SPY cùng nến 5 phút. Nguồn ≤ −1%, đích ≥ +0,5%, spread ≥ 2 điểm %, ít nhất 80% ETF có giá trễ không quá 20 phút. Tín hiệu tạm thời.</div>`;
-    $("explain").textContent = `Perf pre, RS pre và điểm PRE trên chart cập nhật theo giá trước mở cửa. Sức mạnh /5, Perf 3D–1W–1M, RVOL và A/D là bối cảnh phiên chính đến ${dmy(d.asOf)}. ETFIQ là net flow công bố theo ngày.`;
+    $("explain").textContent = `Perf hôm nay và điểm PRE trên chart cập nhật theo giá trước mở cửa. Sức mạnh /5, RS vs SPY, RVOL và Rotation là bối cảnh phiên chính đến ${dmy(d.asOf)}. ETFIQ là net flow công bố theo ngày.`;
     $("explain").style.display = "";
   } else {
     const list = (S.tab === "main" ? d.dailyRotations : d.subDailyRotations) || [];
@@ -437,26 +435,20 @@ function renderChart() {
 const ROT_CLS = { "Leading mạnh": "r-lead", "Leading bền / nghỉ": "r-rest", "Improving ngắn hạn": "r-imp",
   "Hồi kỹ thuật": "r-bounce", "Weakening": "r-weak", "Lagging": "r-lag", "Trung tính": "r-neu" };
 const STR_ICON = { 5: "🟩", 4: "🟢", 3: "🟨", 2: "🟧", 1: "🟥" };
+const todayPerf = (x, pre) => (pre ? preOf(x).perf : x.perfD);
 function cols(pre) {
   const c = [
     { k: "rank", h: "#", cls: "stk rankc", sort: (x) => -(x.rank ?? 999) },
     { k: "strength", h: "Sức mạnh", cls: "stk2 strc", sort: (x) => x.strength ?? -1 },
     { k: "ticker", h: "Mã / Sector", cls: "stk3 idc", sort: (x) => x.ticker, str: true },
   ];
-  if (pre) c.push(
-    { k: "pperf", h: "Perf pre", s: "vs đóng cửa trước", sort: (x) => preOf(x).perf },
-    { k: "prs", h: "RS pre vs SPY", s: "cùng nến 5 phút", sort: (x) => preOf(x).rs });
   c.push(
+    { k: "today", h: "Perf hôm nay", s: pre ? "pre-market vs đóng cửa trước" : "vs đóng cửa trước", sort: (x) => todayPerf(x, pre) },
+    { k: "rs10", h: "RS vs SPY", s: "10 phiên", sort: (x) => (x.rs10 || [])[9] },
     { k: "stocks", h: "Stock đại diện", s: "vốn hóa & thanh khoản", cls: "stocks", nosort: true },
     { k: "cat", h: "Catalyst", s: "động lực + ngày BCTC", cls: "cat", sort: (x) => x.earningsDate || "9999", str: true, asc: true },
-    { k: "perfD", h: pre ? "Perf ngày trước" : "Perf ngày", sort: (x) => x.perfD },
-    { k: "perf3D", h: "Perf 3D", sort: (x) => x.perf3D },
-    { k: "perfW", h: "Perf 1W", sort: (x) => x.perfW },
-    { k: "perfM", h: "Perf 1M", sort: (x) => x.perfM },
-    { k: "rs10", h: "RS vs SPY", s: "10 phiên", sort: (x) => (x.rs10 || [])[9] },
     { k: "rvol", h: "Relative RVOL", s: "10 phiên · tím = mạnh nhất", sort: (x) => x.rvol },
     { k: "flow", h: "ETF Net Flow 10 phiên", s: "USD thực · ETFIQ", sort: (x) => x.etfFlowTotal10 },
-    { k: "ad", h: "A/D Proxy phụ", s: "price-volume · 10 phiên", sort: (x) => x.adProxy10Total },
     { k: "rot", h: "Rotation", sort: (x) => x.rotation, str: true });
   return c;
 }
@@ -480,8 +472,11 @@ function cell(c, x, ctx) {
     case "rank": return ctx.i + 1;
     case "strength": return isNum(x.strength) ? `<span class="str s${x.strength}">${STR_ICON[x.strength]} ${x.strength}/5</span>` : "—";
     case "ticker": return `<a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(x.ticker)}" target="_blank" rel="noopener"><b>${x.ticker}</b></a><small>${esc(x.name)}</small><small>Điểm <span class="num">${fn(x.score)}</span></small>`;
-    case "pperf": return preCell(x, "perf");
-    case "prs": return preCell(x, "rs");
+    case "today": {
+      if (ctx.pre) return preCell(x, "perf");
+      const live = S.data && S.data.session === "regular";
+      return `<span class="big num ${cls(x.perfD)}">${fp(x.perfD)}</span><small>${live ? "phiên chính · đang chạy" : "phiên " + dmy(S.data.asOf)}</small>`;
+    }
     case "stocks": {
       let h = `<div>${esc(x.stocks)}</div>`;
       if (x.bybitEtfPerp) h += `<span class="tag">BYBIT ETF</span><div class="chips"><span class="chip e">${x.bybitEtfPerp}</span></div>`;
@@ -499,7 +494,6 @@ function cell(c, x, ctx) {
       }
       return `<div>${t}</div>${e}`;
     }
-    case "perfD": case "perf3D": case "perfW": case "perfM": return `<span class="num ${cls(x[c.k])}">${fp(x[c.k])}</span>`;
     case "rs10": {
       const r = x.rs10 || [], last = r[r.length - 1];
       const up = x.rsTrend === "up";
@@ -519,7 +513,6 @@ function cell(c, x, ctx) {
         return `<span class="flat">Chỉ có flow tháng</span><small>${esc(x.etfFlowAsOf || "")}: <span class="${cls(x.etfFlowMonthly)}">${fusd(x.etfFlowMonthly)}</span></small>`;
       return `<span class="flat">N/A</span><small>ETFIQ chưa có dữ liệu</small>`;
     }
-    case "ad": return `<span class="big num ${cls(x.adProxy10Total)}">${fn(x.adProxy10Total)}</span><small>Σ10 · 3P ${fn(x.adProxy3)}</small>`;
     case "rot": return `<span class="rot-b ${ROT_CLS[x.rotation] || "r-neu"}">${esc(x.rotation)}</span>`;
   }
   return "";
@@ -528,7 +521,7 @@ function renderTable() {
   const d = S.data; if (!d) return;
   const pre = preView(), C = cols(pre);
   let key = S.sortKey, dir = S.sortDir;
-  if (!key || !C.find((c) => c.k === key)) { key = pre ? "prs" : "rank"; dir = -1; }
+  if (!key || !C.find((c) => c.k === key)) { key = "rank"; dir = -1; }
   const col = C.find((c) => c.k === key);
   const list = rows().slice().sort((a, b) => {
     let va = col.sort(a), vb = col.sort(b);
@@ -540,7 +533,7 @@ function renderTable() {
   });
   const maxRvol = Math.max(...rows().map((x) => (isNum(x.rvol) ? x.rvol : -1)));
   const head = C.map((c) => `<th class="${c.cls || ""} ${c.k === key ? "sorted" : ""}" data-k="${c.nosort ? "" : c.k}">${c.h}${c.k === key ? (dir === -1 ? " ↓" : " ↑") : ""}${c.s ? `<small>${c.s}</small>` : ""}</th>`).join("");
-  const body = list.map((x, i) => `<tr>${C.map((c) => `<td class="${c.cls || ""}">${cell(c, x, { i, maxRvol })}</td>`).join("")}</tr>`).join("");
+  const body = list.map((x, i) => `<tr>${C.map((c) => `<td class="${c.cls || ""}">${cell(c, x, { i, maxRvol, pre })}</td>`).join("")}</tr>`).join("");
   const box = document.querySelector("#tablecard .scroller");
   const sx = box.scrollLeft, sy = box.scrollTop;
   box.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
@@ -596,7 +589,7 @@ $("pager").addEventListener("click", (e) => {
 $("tablecard").addEventListener("click", (e) => {
   const th = e.target.closest("th"); if (!th || !th.dataset.k) return;
   const k = th.dataset.k;
-  const curKey = S.sortKey || (preView() ? "prs" : "rank");
+  const curKey = S.sortKey || "rank";
   if (curKey === k) S.sortDir = -S.sortDir; else { S.sortKey = k; S.sortDir = -1; }
   S.sortKey = k; renderTable();
 });
