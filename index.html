@@ -7,6 +7,7 @@
 <meta name="description" content="Live US sector and industry ETF rotation dashboard" />
 <title>US Sector Rotation Live</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("rot.theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
 <style>
 :root{
   --bg:#0b0b0c; --panel:#121214; --panel2:#18181b; --line:#25252a; --line2:#34343a;
@@ -89,7 +90,7 @@ h1{margin:4px 0 4px;font-size:30px;letter-spacing:-.01em;font-weight:800;color:v
 .lcol{display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
 .lhead{text-align:center;font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:5px}
 .lhead small{display:block;color:var(--dim);font-family:inherit;font-weight:500;font-size:10px}
-.lb{display:block;text-align:center;text-shadow:0 1px 2px #000a;padding:6px 4px 5px;border-bottom:1px solid #0b0b0c;color:#fff;line-height:1.25;position:relative}
+.lb{display:block;text-align:center;text-shadow:0 1px 2px #000a;padding:6px 4px 5px;border-bottom:1px solid var(--bg);color:#fff;line-height:1.25;position:relative}
 .lb:first-of-type{border-radius:3px 3px 0 0} .lb:last-of-type{border-bottom:0;border-radius:0 0 3px 3px}
 .lb:hover{outline:1px solid var(--accent);z-index:1}
 .lb b{font-family:var(--mono);font-size:13px;letter-spacing:.03em}
@@ -100,6 +101,34 @@ h1{margin:4px 0 4px;font-size:30px;letter-spacing:-.01em;font-weight:800;color:v
 .lname{text-align:center;margin-top:7px;font-size:11.5px;color:var(--muted);line-height:1.3}
 .lname b{display:block;color:var(--accent);font-family:var(--mono);font-size:12.5px}
 .lempty{color:var(--dim);font-size:11px;text-align:center;padding:10px 0}
+
+/* light theme */
+html[data-theme="light"]{
+  --bg:#f4f2ee; --panel:#ffffff; --panel2:#f6f4f0; --line:#e3ded6; --line2:#d3ccc1;
+  --text:#1c1c1f; --muted:#5f5f66; --dim:#8a8a91;
+  --accent:#a8631f; --accent-d:#fbefe2; --accent-b:#e2bd93; --hover:#fbf6ef;
+  --green:#138a4a; --green2:#d6f2e2; --red:#cc3b3b; --amber:#a86b00; --blue:#1f6fc4; --purple:#7c3aed;
+  --chip:#f1eee9; color-scheme:light;
+}
+html[data-theme="light"] th{background:#faf7f2;border-bottom-color:#e2bd93}
+html[data-theme="light"] th.sorted{color:#7a4510;background:var(--accent-d)}
+html[data-theme="light"] .stk3{box-shadow:6px 0 8px -6px #0002}
+html[data-theme="light"] .badge.live{color:#7a4510}
+html[data-theme="light"] .badge.warn,html[data-theme="light"] .pill.no{background:#fde8e8;border-color:#f0b4b4;color:#a12a2a}
+html[data-theme="light"] .pill.ok{background:#e3f6ea;border-color:#9fd8b4}
+html[data-theme="light"] .pill.wait{background:#fdf3dc;border-color:#ebcf8a}
+html[data-theme="light"] .callout{background:#fdf6ec;border-color:#ecd8bc}
+html[data-theme="light"] .callout.ok{background:#e9f7ef;border-color:#a9dcbd}
+html[data-theme="light"] .str.s5,html[data-theme="light"] .r-lead{background:#dcf5e6;color:#0f7a3f}
+html[data-theme="light"] .str.s4,html[data-theme="light"] .r-rest{background:#ebf7ef;color:#2f7a4f}
+html[data-theme="light"] .str.s3{background:#fdf3d6;color:#8a5d00}
+html[data-theme="light"] .str.s2,html[data-theme="light"] .r-weak{background:#fde9d6;color:#a5520c}
+html[data-theme="light"] .str.s1,html[data-theme="light"] .r-lag{background:#fde3e3;color:#b02a2a}
+html[data-theme="light"] .r-imp{background:#e0edfc;color:#1f5fa8} html[data-theme="light"] .r-bounce{background:#efe6fc;color:#6a3fb5}
+html[data-theme="light"] .r-neu{background:#efefef;color:#555}
+html[data-theme="light"] .chip.e{border-color:#e2bd93} html[data-theme="light"] .chip.s{color:#1f5fa8;border-color:#b8d0ee}
+html[data-theme="light"] .lb{border-bottom-color:#fff}
+.themebtn{display:inline-flex;align-items:center;gap:6px}
 
 /* toolbar + table */
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
@@ -191,6 +220,7 @@ footer ul{margin:6px 0 0 18px;padding:0}
       <p class="lede">Performance tuyệt đối · RS vs SPY · RVOL · Rotation · Perp Bybit</p>
     </div>
     <div class="status">
+      <div class="seg" id="themeSeg"><button data-theme="dark">🌙 Tối</button><button data-theme="light">☀️ Sáng</button></div>
       <span id="badge" class="badge"><span class="dot"></span><span>Đang kết nối dữ liệu…</span></span>
       <div id="meta" class="meta"></div>
     </div>
@@ -276,7 +306,15 @@ footer ul{margin:6px 0 0 18px;padding:0}
 "use strict";
 const DATA_URL = "data/rotation.json";
 const PAGE = 6;
-const COLORS = ["#e6b07a", "#6aaee8", "#5fcf8f", "#b99ae6", "#e88aa3", "#d9d9d9"];
+const COLORS_D = ["#e6b07a", "#6aaee8", "#5fcf8f", "#b99ae6", "#e88aa3", "#d9d9d9"];
+const COLORS_L = ["#c0661a", "#1f6fc4", "#178a4a", "#7c4fc9", "#c2416b", "#55555c"];
+const isLight = () => document.documentElement.dataset.theme === "light";
+const TH = () => isLight()
+  ? { grid: "#ebe6de", zero: "#d8b98f", tick: "#6b6b72", tipBg: "#ffffff", tipBd: "#e2bd93", tipTitle: "#a8631f", tipBody: "#1c1c1f",
+      up: "#12a05a", dn: "#d63c3c", base: "#9a9aa2", lo: "#c9c9cf", max: "#8b5cf6" }
+  : { grid: "#1e1e22", zero: "#4a3a28", tick: "#9b9b9b", tipBg: "#111113", tipBd: "#5c4630", tipTitle: "#e6b07a", tipBody: "#ececec",
+      up: "#5fd3a5", dn: "#ef6a6a", base: "#6b6b72", lo: "#6b6b72", max: "#b77cff" };
+let COLORS = COLORS_D;
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -420,7 +458,8 @@ function pagesOf(series) {
 }
 function renderChart() {
   const d = S.data; if (!d || typeof Chart === "undefined") { if (typeof Chart === "undefined") $("chartNote").textContent = "Không tải được Chart.js (kiểm tra kết nối)."; return; }
-  const pre = preView();
+  const pre = preView(), T = TH();
+  COLORS = isLight() ? COLORS_L : COLORS_D;
   const series = chartSeries(); if (!series.length) return;
   const pages = pagesOf(series);
   if (S.page >= pages.length) S.page = 0;
@@ -450,14 +489,16 @@ function renderChart() {
     responsive: true, maintainAspectRatio: false, animation: false,
     interaction: { mode: "index", intersect: false },
     plugins: { legend: { display: false },
-      tooltip: { backgroundColor: "#111113", borderColor: "#5c4630", borderWidth: 1, titleColor: "#e6b07a", titleFont: { family: "monospace" }, bodyFont: { family: "monospace" },
+      tooltip: { backgroundColor: T.tipBg, borderColor: T.tipBd, borderWidth: 1, titleColor: T.tipTitle, bodyColor: T.tipBody, titleFont: { family: "monospace" }, bodyFont: { family: "monospace" },
         callbacks: { label: (c) => ` ${c.dataset.label}: ${fp(c.parsed.y)}` } } },
     scales: {
-      x: { grid: { color: "#1e1e22" }, ticks: { color: "#9b9b9b", font: { size: 11, family: "monospace" }, maxRotation: 0, autoSkip: true } },
-      y: { position: "right", grid: { color: (c) => (c.tick.value === 0 ? "#4a3a28" : "#1e1e22") },
-           ticks: { color: "#9b9b9b", font: { size: 11, family: "monospace" }, callback: (v) => fp(v, 0) } },
+      x: { grid: { color: T.grid }, ticks: { color: T.tick, font: { size: 11, family: "monospace" }, maxRotation: 0, autoSkip: true } },
+      y: { position: "right", grid: { color: (c) => (c.tick.value === 0 ? T.zero : T.grid) },
+           ticks: { color: T.tick, font: { size: 11, family: "monospace" }, callback: (v) => fp(v, 0) } },
     },
   };
+  if (S.chart && S.chartTheme !== isLight()) { S.chart.destroy(); S.chart = null; }
+  S.chartTheme = isLight();
   if (S.chart) { S.chart.data.labels = labels; S.chart.data.datasets = datasets; S.chart.update(); }
   else S.chart = new Chart($("chart"), { type: "line", data: { labels, datasets }, options: opts });
   const pg = $("pager");
@@ -501,25 +542,25 @@ function lineSpark(arr, labels) {
   const n = arr.length, vals = pts.map((p) => p[1]);
   let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); if (hi - lo < 1e-9) hi = lo + 1;
   const px = (i) => 3 + (i / (n - 1)) * (SW - 6), py = (v) => 4 + (1 - (v - lo) / (hi - lo)) * (SH - 8);
-  const last = vals[vals.length - 1], col = last >= 0 ? "#5fd3a5" : "#ef6a6a";
+  const T = TH(), last = vals[vals.length - 1], col = last >= 0 ? T.up : T.dn;
   const line = pts.map((p) => `${px(p[0]).toFixed(1)},${py(p[1]).toFixed(1)}`).join(" ");
   const y0 = py(0).toFixed(1);
   const area = `${px(pts[0][0]).toFixed(1)},${y0} ${line} ${px(pts[pts.length - 1][0]).toFixed(1)},${y0}`;
   const dots = pts.map((p) => `<circle cx="${px(p[0]).toFixed(1)}" cy="${py(p[1]).toFixed(1)}" r="2.2" fill="${col}"><title>${esc((labels || [])[p[0]] || "")} ${fp(p[1])}</title></circle>`).join("");
-  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none"><line x1="0" x2="${SW}" y1="${y0}" y2="${y0}" stroke="#6b6b72" stroke-dasharray="3 3" stroke-width="1"/><polygon points="${area}" fill="${col}" fill-opacity=".14"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round"/>${dots}</svg>`;
+  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none"><line x1="0" x2="${SW}" y1="${y0}" y2="${y0}" stroke="${T.base}" stroke-dasharray="3 3" stroke-width="1"/><polygon points="${area}" fill="${col}" fill-opacity=".14"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round"/>${dots}</svg>`;
 }
 function barSpark(arr, labels) {
   const a = arr || [], vals = a.filter(isNum);
   if (!vals.length) return `<div class="svgbox"></div>`;
-  const hi = Math.max(1.2, ...vals), mx = Math.max(...vals), n = a.length, bw = (SW - 4) / n;
+  const T = TH(), hi = Math.max(1.2, ...vals), mx = Math.max(...vals), n = a.length, bw = (SW - 4) / n;
   const py = (v) => SH - 2 - (v / hi) * (SH - 6), y1 = py(1).toFixed(1);
   const bars = a.map((v, i) => {
     if (!isNum(v)) return "";
-    const c = v === mx ? "#b77cff" : v >= 1 ? "#5fd3a5" : "#6b6b72";
+    const c = v === mx ? T.max : v >= 1 ? T.up : T.lo;
     const y = py(v);
     return `<rect x="${(2 + i * bw + 1.5).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${(SH - 2 - y).toFixed(1)}" fill="${c}" rx="1"><title>${esc((labels || [])[i] || "")} ${fx(v)}</title></rect>`;
   }).join("");
-  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none">${bars}<line x1="0" x2="${SW}" y1="${y1}" y2="${y1}" stroke="#8a8a92" stroke-dasharray="3 3" stroke-width="1"/></svg>`;
+  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none">${bars}<line x1="0" x2="${SW}" y1="${y1}" y2="${y1}" stroke="${T.base}" stroke-dasharray="3 3" stroke-width="1"/></svg>`;
 }
 function preCell(x, kind) {
   const q = preOf(x);
@@ -655,6 +696,58 @@ function renderLeaders() {
     : `RS nhanh 1 ngày: RS Rating 1–99 = thứ hạng phần trăm của RS 1D (Perf ${pre ? "pre-market" : "hôm nay"} − SPY) trên ~110 mã top holdings của 11 ETF ngành; số sau là RS 1D. Ngành xếp theo đúng hạng ở bảng (điểm = 0,15·RS ngày + 0,35·RS 1W + 0,5·RS 1M); mỗi cột lấy mã RS ≥ ${LEAD_MIN} (tối đa ${LEAD_MAX}, ít nhất 1 mã).`) +
     ` <span class="by" style="position:static;display:inline-block;background:#f7a600;color:#111;font-size:9px;font-weight:800;padding:0 3px;border-radius:2px">BYBIT</span> = có Stock Perp trên Bybit (rê chuột để xem mã).`;
 }
+// ---------- Bybit perp list: lấy live từ trình duyệt (GitHub Actions bị Bybit chặn), cache trong ngày
+const BYBIT_TTL = 6 * 3600e3;
+const BY = { stock: null, etf: null, at: null, src: null };
+async function loadBybit(force) {
+  try {
+    const c = JSON.parse(store.get("rot.bybit", "null") || "null");
+    if (!force && c && Date.now() - c.at < BYBIT_TTL && new Date(c.at).toDateString() === new Date().toDateString()) {
+      Object.assign(BY, { stock: new Set(c.stock), etf: new Set(c.etf), at: c.at, src: "cache" }); return;
+    }
+  } catch (e) {}
+  try {
+    const stock = [], etf = []; let cursor = "";
+    for (let i = 0; i < 6; i++) {
+      const j = await fetch("https://api.bybit.com/v5/market/instruments-info?category=linear&limit=1000" + (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""), { cache: "no-store" }).then((r) => r.json());
+      if (j.retCode !== 0) throw new Error(j.retMsg);
+      for (const it of j.result.list) {
+        if (it.status !== "Trading") continue;
+        if (it.symbolType === "stock") stock.push(it.symbol);
+        else if (it.symbolType === "ETF") etf.push(it.symbol);
+      }
+      cursor = j.result.nextPageCursor; if (!cursor) break;
+    }
+    if (!stock.length) throw new Error("empty");
+    const at = Date.now();
+    Object.assign(BY, { stock: new Set(stock), etf: new Set(etf), at, src: "live" });
+    store.set("rot.bybit", JSON.stringify({ stock, etf, at }));
+  } catch (e) { BY.src = BY.stock ? BY.src : null; }
+}
+function bybitStockSym(t) {
+  if (!BY.stock) return undefined;
+  const b = String(t).replace(".", "");
+  const s = [b + "USDT", b + "STOCKUSDT", b + "XUSDT"].find((x) => BY.stock.has(x));
+  return s ? s + ".P" : null;
+}
+function applyBybit() {
+  const d = S.data; if (!d || !BY.stock) return;
+  for (const g of ["main", "sub"]) for (const x of d[g] || []) {
+    x.bybitEtfPerp = BY.etf.has(x.ticker + "USDT") ? x.ticker + "USDT.P" : null;
+    const st = String(x.stocks || "").split(" · ").filter((t) => t && t !== "N/A");
+    const perps = st.map((t) => ({ ticker: t, symbol: bybitStockSym(t) })).filter((p) => p.symbol);
+    x.bybitStockPerps = perps;
+    for (const r of x.leaders || []) r.bybit = bybitStockSym(r.t);
+  }
+  d.bybitPerpSource = `Bybit live ${BY.src === "cache" ? "(cache) " : ""}${new Date(BY.at).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`;
+  const us = new Set(), ue = new Set();
+  for (const g of ["main", "sub"]) for (const x of d[g] || []) {
+    if (x.bybitEtfPerp) ue.add(x.ticker);
+    for (const p of x.bybitStockPerps || []) us.add(p.ticker);
+    for (const r of x.leaders || []) if (r.bybit) us.add(r.t);
+  }
+  d.bybitPerpCoverage = { live: true, stock: us.size, etf: ue.size };
+}
 function renderAll() {
   if (!S.data) return;
   renderHeader(); renderCards(); renderRotation(); renderChart(); renderLeaders(); renderTable(); renderFooter();
@@ -666,6 +759,8 @@ async function load(manual) {
     const r = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     S.data = await r.json(); S.loadedAt = new Date(); S.error = null;
+    if (!BY.stock || Date.now() - BY.at > BYBIT_TTL) await loadBybit(manual);
+    applyBybit();
     renderAll();
   } catch (e) {
     S.error = e;
@@ -700,6 +795,13 @@ $("leadMode").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   S.leadMode = b.dataset.m; store.set("rot.lead", S.leadMode); renderLeaders();
 });
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t; store.set("rot.theme", t);
+  document.querySelectorAll("#themeSeg button").forEach((b) => b.classList.toggle("on", b.dataset.theme === t));
+  renderAll();
+}
+$("themeSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) applyTheme(b.dataset.theme); });
+document.querySelectorAll("#themeSeg button").forEach((b) => b.classList.toggle("on", b.dataset.theme === (document.documentElement.dataset.theme || "dark")));
 $("refresh").addEventListener("click", () => load(true));
 function toggleFs(on) {
   const el = $("tablecard");
