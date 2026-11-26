@@ -83,6 +83,24 @@ h1{margin:4px 0 4px;font-size:30px;letter-spacing:-.01em;font-weight:800;color:v
 .pager button.on{background:var(--accent-d);border-color:var(--accent-b);color:var(--accent);font-weight:700}
 .pager button:disabled{opacity:.35;cursor:default}
 
+/* leader map */
+.lmapwrap{overflow-x:auto;margin-top:12px;padding-bottom:4px}
+.lmap{display:grid;grid-template-columns:repeat(var(--n,11),minmax(96px,1fr));gap:8px;align-items:end;min-width:calc(var(--n,11) * 104px)}
+.lcol{display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+.lhead{text-align:center;font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:5px}
+.lhead small{display:block;color:var(--dim);font-family:inherit;font-weight:500;font-size:10px}
+.lb{display:block;text-align:center;text-shadow:0 1px 2px #000a;padding:6px 4px 5px;border-bottom:1px solid #0b0b0c;color:#fff;line-height:1.25;position:relative}
+.lb:first-of-type{border-radius:3px 3px 0 0} .lb:last-of-type{border-bottom:0;border-radius:0 0 3px 3px}
+.lb:hover{outline:1px solid var(--accent);z-index:1}
+.lb b{font-family:var(--mono);font-size:13px;letter-spacing:.03em}
+.lb .lp{display:block;font-family:var(--mono);font-size:12px;font-weight:700}
+.lb .lp.pos{color:#7dffb0} .lb .lp.neg{color:#ff9b9b} .lb .lp.flat{color:#ffd166}
+.lb .lr{display:block;font-family:var(--mono);font-size:10.5px;color:#ffffffcc}
+.lb .by{position:absolute;top:3px;right:3px;font-size:8.5px;font-weight:800;letter-spacing:.02em;padding:0 3px;border-radius:2px;background:#f7a600;color:#111;font-family:var(--mono)}
+.lname{text-align:center;margin-top:7px;font-size:11.5px;color:var(--muted);line-height:1.3}
+.lname b{display:block;color:var(--accent);font-family:var(--mono);font-size:12.5px}
+.lempty{color:var(--dim);font-size:11px;text-align:center;padding:10px 0}
+
 /* toolbar + table */
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
@@ -202,6 +220,15 @@ footer ul{margin:6px 0 0 18px;padding:0}
     <div class="pager" id="pager"></div>
   </section>
 
+  <section class="panel" id="leadPanel">
+    <div class="ph">
+      <div><h2>Bản đồ mã mạnh nhất trong ngành mạnh nhất</h2><div class="sub" id="leadSub">Main sectors · trái → phải: ngành mạnh → yếu · trong cột: leader ở trên cùng</div></div>
+      <div class="seg" id="leadMode"><button data-m="rs">RS Rating</button><button data-m="perf">Biến động giá</button></div>
+    </div>
+    <div class="lmapwrap"><div class="lmap" id="leadMap"></div></div>
+    <div class="rule" id="leadNote"></div>
+  </section>
+
   <div class="toolbar">
     <nav class="tabs">
       <button class="tab on" data-tab="main" id="tabMain">Main Sectors · 11</button>
@@ -249,7 +276,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 };
 const S = { data: null, mode: store.get("rot.mode", "auto"), tab: store.get("rot.tab", "main"),
-            sortKey: null, sortDir: -1, page: 0, chart: null, loadedAt: null, error: null };
+            sortKey: null, sortDir: -1, page: 0, leadMode: store.get("rot.lead", "rs"), chart: null, loadedAt: null, error: null };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -547,9 +574,47 @@ function renderFooter() {
   $("errs").textContent = d.errors && d.errors.length ? `⚠ ${d.errors.length} lỗi nguồn ở lần cập nhật gần nhất: ${d.errors.slice(0, 4).join(" | ")}` : "";
 }
 
+// ---------- leader map (kiểu Finbox)
+const LEAD_COLORS = { XLK: "#1f4f8a", XLF: "#2b6f5e", XLV: "#7a2f4f", XLY: "#8a5a1f", XLC: "#5a3f8a", XLI: "#4f5a66",
+  XLP: "#2f6f8a", XLE: "#7a3a1f", XLU: "#6f6f1f", XLRE: "#3f6f2f", XLB: "#6f4f3a" };
+const LEAD_MIN = 60, LEAD_MAX = 5;
+function shade(hex, k) {
+  const n = parseInt(hex.slice(1), 16), f = (c) => Math.round(c + (255 - c) * k);
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+function renderLeaders() {
+  const d = S.data; if (!d) return;
+  const pre = preView(), m = S.leadMode;
+  document.querySelectorAll("#leadMode button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
+  const lp = (r) => (pre ? (r.pre || {}).perf : r.perfD);
+  const secs = (d.main || []).filter((x) => Array.isArray(x.leaders) && x.leaders.length).map((x) => {
+    let st;
+    if (m === "perf") st = x.leaders.slice().sort((a, b) => (isNum(lp(b)) ? lp(b) : -1e9) - (isNum(lp(a)) ? lp(a) : -1e9)).slice(0, LEAD_MAX);
+    else { st = x.leaders.filter((r) => r.rating >= LEAD_MIN).slice(0, LEAD_MAX); if (!st.length) st = x.leaders.slice(0, 1); }
+    return { x, st, key: m === "perf" ? todayPerf(x, pre) : x.score };
+  }).sort((a, b) => (isNum(b.key) ? b.key : -1e9) - (isNum(a.key) ? a.key : -1e9));
+  if (!secs.length) { $("leadMap").innerHTML = `<div class="lempty">Chưa có dữ liệu leader — đợi lần cập nhật kế tiếp.</div>`; return; }
+  $("leadMap").style.setProperty("--n", secs.length);
+  $("leadMap").innerHTML = secs.map(({ x, st, key }) => {
+    const base = LEAD_COLORS[x.ticker] || "#444";
+    const head = m === "perf"
+      ? `<div class="lhead ${cls(key)}">${fp(key)}<small>${pre ? "pre-market" : "hôm nay"}</small></div>`
+      : `<div class="lhead ${cls(key)}">${fn(key)}<small>điểm ngành</small></div>`;
+    const blocks = st.map((r, i) => {
+      const v = lp(r);
+      return `<a class="lb" style="background:${shade(base, i * 0.075)}" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.t)}" target="_blank" rel="noopener" title="${esc(r.t)}${r.bybit ? " · Bybit " + esc(r.bybit) : ""} · 1W ${fp(r.perfW)} · 1M ${fp(r.perfM)}">` +
+        `${r.bybit ? `<span class="by">BYBIT</span>` : ""}<b>${esc(r.t)}</b><span class="lp ${cls(v)}">${fp(v, 1)}</span><span class="lr">RS ${r.rating}</span></a>`;
+    }).join("");
+    return `<div class="lcol">${head}${blocks}<div class="lname"><b>${x.ticker}</b>${esc(x.name)}</div></div>`;
+  }).join("");
+  $("leadNote").innerHTML = (m === "perf"
+    ? `Biến động giá: ngành xếp theo Perf ${pre ? "pre-market" : "hôm nay"}, trong cột xếp theo % tăng giá (tối đa ${LEAD_MAX} mã).`
+    : `RS Rating 1–99 = thứ hạng phần trăm của điểm RS (0,15·RS ngày + 0,35·RS 1W + 0,5·RS 1M vs SPY) trên toàn bộ ~110 mã top holdings của 11 ETF ngành. Ngành xếp theo điểm ngành; mỗi cột chỉ lấy mã RS ≥ ${LEAD_MIN} (tối đa ${LEAD_MAX}, ít nhất 1 mã).`) +
+    ` <span class="by" style="position:static;display:inline-block;background:#f7a600;color:#111;font-size:9px;font-weight:800;padding:0 3px;border-radius:2px">BYBIT</span> = có Stock Perp trên Bybit (rê chuột để xem mã).`;
+}
 function renderAll() {
   if (!S.data) return;
-  renderHeader(); renderCards(); renderRotation(); renderChart(); renderTable(); renderFooter();
+  renderHeader(); renderCards(); renderRotation(); renderChart(); renderLeaders(); renderTable(); renderFooter();
 }
 
 // ---------- data
@@ -587,6 +652,10 @@ $("tablecard").addEventListener("click", (e) => {
   const curKey = S.sortKey || "rank";
   if (curKey === k) S.sortDir = -S.sortDir; else { S.sortKey = k; S.sortDir = -1; }
   S.sortKey = k; renderTable();
+});
+$("leadMode").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.leadMode = b.dataset.m; store.set("rot.lead", S.leadMode); renderLeaders();
 });
 $("refresh").addEventListener("click", () => load(true));
 function toggleFs(on) {

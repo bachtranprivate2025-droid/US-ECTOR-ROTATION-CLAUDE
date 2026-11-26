@@ -419,6 +419,51 @@ def daily_rotations(items: list[dict], sessions: int = 10) -> list[dict]:
     return out
 
 
+
+# ---------------------------------------------------------------- sector leader map
+def yahoo_sym(t: str) -> str:
+    return t.replace(".", "-")
+
+
+def stock_metrics(bars: list[dict], spy: list[dict]) -> dict | None:
+    e, s = align(bars, spy)
+    if len(e) < 25:
+        return None
+    ec, sc = [b["adj"] for b in e], [b["adj"] for b in s]
+    out = {}
+    for key, k in (("D", 1), ("W", 5), ("M", 21)):
+        pe, ps = pct(ec[-1], ec[-1 - k]), pct(sc[-1], sc[-1 - k])
+        out["perf" + key] = rnd(pe)
+        out["rs" + key] = rnd(pe - ps) if pe is not None and ps is not None else None
+    sd, sw, sm = out["rsD"], out["rsW"], out["rsM"]
+    out["score"] = rnd(0.15 * sd + 0.35 * sw + 0.50 * sm) if None not in (sd, sw, sm) else None
+    out["_close"] = e[-1]["c"]
+    return out
+
+
+def attach_leaders(items: list[dict], cfg_main: list[dict], stock_daily: dict, spy: list[dict],
+                   bybit_stock: dict) -> None:
+    """RS Rating 1-99 = percentile of the RS score (0.15 RS D + 0.35 RS 1W + 0.5 RS 1M) across all leader stocks."""
+    metrics = {}
+    for t, bars in stock_daily.items():
+        if bars:
+            m = stock_metrics(bars, spy)
+            if m and m["score"] is not None:
+                metrics[t] = m
+    order = sorted(metrics, key=lambda t: metrics[t]["score"])
+    n = len(order)
+    for i, t in enumerate(order):
+        metrics[t]["rating"] = int(round(1 + 98 * i / (n - 1))) if n > 1 else 50
+    by_t = {e["ticker"]: e for e in cfg_main}
+    for x in items:
+        lst = [dict(t=t, **{k: v for k, v in metrics[t].items() if not k.startswith("_")})
+               for t in by_t.get(x["ticker"], {}).get("leaders", []) if t in metrics]
+        for r in lst:
+            r["bybit"] = bybit_stock[r["t"]] + ".P" if r["t"] in bybit_stock else None
+        lst.sort(key=lambda r: r["rating"], reverse=True)
+        x["leaders"] = lst
+        x["_leaderClose"] = {t: metrics[t]["_close"] for t in by_t.get(x["ticker"], {}).get("leaders", []) if t in metrics}
+
 # ---------------------------------------------------------------- pre-market
 def session_state(now: datetime, spy_last_date: str) -> str:
     if now.weekday() >= 5:
@@ -523,6 +568,15 @@ def build(fetcher: LiveFetcher, now: datetime) -> dict:
         rank_group(items)
         result[gname] = items
 
+    # ---- sector leader map (main sectors only)
+    leader_t = sorted({t for e in groups["main"] for t in e.get("leaders", [])})
+    with ThreadPoolExecutor(8) as pool:
+        stock_daily = dict(zip(leader_t, pool.map(lambda t: safe(fetcher.daily, yahoo_sym(t)), leader_t)))
+    if now.hour * 60 + now.minute < 570:
+        today = now.date().isoformat()
+        stock_daily = {k: ([b for b in v if b["date"] < today] if v else v) for k, v in stock_daily.items()}
+    attach_leaders(result["main"], groups["main"], stock_daily, spy, bybit_stock)
+
     spy_c = [b["adj"] for b in spy]
     benchmark = {"ticker": bench, "price": rnd(spy[-1]["c"]),
                  "perfD": rnd(pct(spy_c[-1], spy_c[-2])), "perf3D": rnd(pct(spy_c[-1], spy_c[-4])),
@@ -556,6 +610,13 @@ def build(fetcher: LiveFetcher, now: datetime) -> dict:
             if pick:
                 pick["confirmed"] = bool(pick["confirmed"] and len(fresh) >= PRE_COVERAGE * len(items))
             pre_block["rotations"][gname] = pick
+        with ThreadPoolExecutor(8) as pool:
+            s_intr = dict(zip(leader_t, pool.map(lambda t: safe(fetcher.intraday, yahoo_sym(t)), leader_t)))
+        for x in result["main"]:
+            closes = x.get("_leaderClose", {})
+            for r in x.get("leaders", []):
+                q = pre_quote(s_intr.get(r["t"]) or [], closes.get(r["t"]), now, None, None)
+                r["pre"] = {"perf": q["perf"], "status": q["status"]}
 
     rot = {g: daily_rotations(items) for g, items in result.items() if items}
 
@@ -564,6 +625,7 @@ def build(fetcher: LiveFetcher, now: datetime) -> dict:
         for x in items:
             cov[x["etfFlowCoverage"]] = cov.get(x["etfFlowCoverage"], 0) + 1
             x.pop("_daily", None)
+            x.pop("_leaderClose", None)
 
     return {
         "updatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

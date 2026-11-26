@@ -5,6 +5,7 @@ Dashboard xoay vòng ngành Mỹ: 11 ETF sector chính + 48 ETF sub-section, có
 - Performance ngày / 3D / 1W / 1M, RS vs SPY, điểm RS đa khung, Sức mạnh /5, nhãn Rotation
 - RS vs SPY 10 phiên, Relative RVOL, A/D proxy (price-volume)
 - ETF Net Flow 10 phiên (USD thực) từ ETFIQ
+- Bản đồ leader kiểu Finbox: ~10 top holdings/ETF ngành, RS Rating 1–99, tab RS Rating / Biến động giá, gắn nhãn BYBIT nếu có Stock Perp
 - Ngày BCTC của cổ phiếu đại diện (TradingView), mã perpetual Bybit (Stock / ETF)
 - Pre-market: Perf pre, RS pre cùng nến 5 phút với SPY, rotation tạm thời, điểm PRE trên chart
 
@@ -41,7 +42,7 @@ python -m http.server 8000                                    # mở http://loca
 
 ## Tuỳ chỉnh
 
-- Danh mục ETF, cổ phiếu đại diện, chủ đề catalyst, mã BCTC: `config/universe.json`
+- Danh mục ETF, cổ phiếu đại diện, `leaders` (mã cho bản đồ leader), chủ đề catalyst, mã BCTC: `config/universe.json`
 - Ngưỡng rotation, công thức điểm: đầu file `scripts/build_data.py`
 
 Lưu ý: GitHub tự tắt lịch chạy của repo public nếu repo không có commit nào trong 60 ngày — khi đó vào Actions bấm *Enable workflow*.

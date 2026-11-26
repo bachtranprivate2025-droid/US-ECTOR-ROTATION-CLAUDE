@@ -11,6 +11,7 @@
     "AVGO",
     "AMD"
    ],
+   "leaders": ["NVDA", "MSFT", "AAPL", "AVGO", "ORCL", "AMD", "PLTR", "CSCO", "IBM", "CRM"],
    "theme": "AI capex, semiconductor cycle và earnings megacap",
    "earnings": "NASDAQ:NVDA",
    "earningsFallback": "2026-11-17"
@@ -25,6 +26,7 @@
     "MA",
     "BAC"
    ],
+   "leaders": ["BRK.B", "JPM", "V", "MA", "BAC", "WFC", "GS", "MS", "AXP", "C"],
    "theme": "Đường cong lợi suất, NIM, tín dụng và earnings ngân hàng",
    "earnings": "NYSE:BRK.B",
    "earningsFallback": "2027-02-22"
@@ -38,6 +40,7 @@
     "UNH",
     "AMGN"
    ],
+   "leaders": ["LLY", "JNJ", "ABBV", "UNH", "MRK", "ABT", "ISRG", "TMO", "AMGN", "BSX"],
    "theme": "Medicare, drug pricing, GLP-1 và earnings dược/bảo hiểm",
    "earnings": "NYSE:LLY",
    "earningsFallback": "2027-02-10"
@@ -51,6 +54,7 @@
     "MCD",
     "NKE"
    ],
+   "leaders": ["AMZN", "TSLA", "HD", "MCD", "BKNG", "TJX", "LOW", "SBUX", "NKE", "ORLY"],
    "theme": "Retail sales, thu nhập khả dụng và earnings AMZN/HD",
    "earnings": "NASDAQ:AMZN",
    "earningsFallback": "2027-02-04"
@@ -64,6 +68,7 @@
     "NFLX",
     "SPOT"
    ],
+   "leaders": ["META", "GOOGL", "NFLX", "DIS", "TMUS", "T", "VZ", "EA", "CMCSA", "TTWO"],
    "theme": "Quảng cáo số, streaming, AI search và earnings META/GOOGL",
    "earnings": "NASDAQ:META",
    "earningsFallback": "2027-02-03"
@@ -78,6 +83,7 @@
     "UBER",
     "BA"
    ],
+   "leaders": ["GE", "CAT", "RTX", "UBER", "GEV", "BA", "HON", "ETN", "UNP", "DE"],
    "theme": "PMI, capex, quốc phòng, hàng không và reshoring",
    "earnings": "NYSE:GE",
    "earningsFallback": "2027-01-21"
@@ -91,6 +97,7 @@
     "PG",
     "KO"
    ],
+   "leaders": ["WMT", "COST", "PG", "KO", "PM", "PEP", "MO", "MDLZ", "CL", "MNST"],
    "theme": "CPI thực phẩm, sức mua tiêu dùng và biên lợi nhuận defensive",
    "earnings": "NASDAQ:WMT",
    "earningsFallback": "2026-11-19"
@@ -102,6 +109,7 @@
     "XOM",
     "CVX"
    ],
+   "leaders": ["XOM", "CVX", "COP", "WMB", "EOG", "KMI", "SLB", "PSX", "MPC", "OKE"],
    "theme": "Giá dầu/khí, kỷ luật OPEC+ và earnings XOM/CVX",
    "earnings": "NYSE:XOM",
    "earningsFallback": "2027-02-02"
@@ -112,6 +120,7 @@
    "stocks": [
     "VST"
    ],
+   "leaders": ["NEE", "SO", "CEG", "DUK", "VST", "AEP", "SRE", "D", "EXC", "XEL"],
    "theme": "Lợi suất trái phiếu, lộ trình lãi suất và nhu cầu điện data center",
    "earnings": "NYSE:VST",
    "earningsFallback": "2027-03-03"
@@ -124,6 +133,7 @@
     "AMT",
     "EQIX"
    ],
+   "leaders": ["WELL", "PLD", "AMT", "EQIX", "SPG", "DLR", "O", "PSA", "CCI", "CBRE"],
    "theme": "Lợi suất dài hạn, kỳ vọng hạ lãi suất và nhu cầu REIT/data center",
    "earnings": "NYSE:PLD",
    "earningsFallback": "2027-01-27"
@@ -137,6 +147,7 @@
     "FCX",
     "NEM"
    ],
+   "leaders": ["LIN", "SHW", "NEM", "ECL", "FCX", "APD", "CTVA", "MLM", "VMC", "NUE"],
    "theme": "USD, kim loại công nghiệp, vàng và chu kỳ sản xuất toàn cầu",
    "earnings": "NASDAQ:LIN",
    "earningsFallback": "2027-02-11"
@@ -771,6 +782,18 @@
    "URNM"
   ],
   "stock": {
+   "IBM": "IBMUSDT",
+   "GS": "GSUSDT",
+   "C": "CSTOCKUSDT",
+   "TMO": "TMOUSDT",
+   "BKNG": "BKNGUSDT",
+   "TJX": "TJXUSDT",
+   "TTWO": "TTWOUSDT",
+   "GEV": "GEVUSDT",
+   "ETN": "ETNUSDT",
+   "MO": "MOUSDT",
+   "MNST": "MNSTUSDT",
+   "CEG": "CEGUSDT",
    "LLY": "LLYUSDT",
    "JNJ": "JNJUSDT",
    "UNH": "UNHUSDT",
