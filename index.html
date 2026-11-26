@@ -587,11 +587,15 @@ function renderLeaders() {
   const pre = preView(), m = S.leadMode;
   document.querySelectorAll("#leadMode button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
   const lp = (r) => (pre ? (r.pre || {}).perf : r.perfD);
+  const lrt = (r) => (pre ? (r.pre || {}).rating : r.rating);
+  const lrs = (r) => (pre ? (r.pre || {}).rs : r.rsD);
+  const secRs = (x) => (pre ? preOf(x).rs : x.rsD);
+  const byNum = (f) => (a, b) => (isNum(f(b)) ? f(b) : -1e9) - (isNum(f(a)) ? f(a) : -1e9);
   const secs = (d.main || []).filter((x) => Array.isArray(x.leaders) && x.leaders.length).map((x) => {
     let st;
-    if (m === "perf") st = x.leaders.slice().sort((a, b) => (isNum(lp(b)) ? lp(b) : -1e9) - (isNum(lp(a)) ? lp(a) : -1e9)).slice(0, LEAD_MAX);
-    else { st = x.leaders.filter((r) => r.rating >= LEAD_MIN).slice(0, LEAD_MAX); if (!st.length) st = x.leaders.slice(0, 1); }
-    return { x, st, key: m === "perf" ? todayPerf(x, pre) : x.score };
+    if (m === "perf") st = x.leaders.slice().sort(byNum(lp)).slice(0, LEAD_MAX);
+    else { const all = x.leaders.slice().sort(byNum(lrt)); st = all.filter((r) => lrt(r) >= LEAD_MIN).slice(0, LEAD_MAX); if (!st.length) st = all.slice(0, 1); }
+    return { x, st, key: m === "perf" ? todayPerf(x, pre) : secRs(x) };
   }).sort((a, b) => (isNum(b.key) ? b.key : -1e9) - (isNum(a.key) ? a.key : -1e9));
   if (!secs.length) { $("leadMap").innerHTML = `<div class="lempty">Chưa có dữ liệu leader — đợi lần cập nhật kế tiếp.</div>`; return; }
   $("leadMap").style.setProperty("--n", secs.length);
@@ -599,17 +603,17 @@ function renderLeaders() {
     const base = LEAD_COLORS[x.ticker] || "#444";
     const head = m === "perf"
       ? `<div class="lhead ${cls(key)}">${fp(key)}<small>${pre ? "pre-market" : "hôm nay"}</small></div>`
-      : `<div class="lhead ${cls(key)}">${fn(key)}<small>điểm ngành</small></div>`;
+      : `<div class="lhead ${cls(key)}">${fp(key)}<small>RS 1D vs SPY</small></div>`;
     const blocks = st.map((r, i) => {
       const v = lp(r);
       return `<a class="lb" style="background:${shade(base, i * 0.075)}" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.t)}" target="_blank" rel="noopener" title="${esc(r.t)}${r.bybit ? " · Bybit " + esc(r.bybit) : ""} · 1W ${fp(r.perfW)} · 1M ${fp(r.perfM)}">` +
-        `${r.bybit ? `<span class="by">BYBIT</span>` : ""}<b>${esc(r.t)}</b><span class="lp ${cls(v)}">${fp(v, 1)}</span><span class="lr">RS ${r.rating}</span></a>`;
+        `${r.bybit ? `<span class="by">BYBIT</span>` : ""}<b>${esc(r.t)}</b><span class="lp ${cls(v)}">${fp(v, 1)}</span><span class="lr">RS ${isNum(lrt(r)) ? lrt(r) : "–"} · ${fp(lrs(r), 1)}</span></a>`;
     }).join("");
     return `<div class="lcol">${head}${blocks}<div class="lname"><b>${x.ticker}</b>${esc(x.name)}</div></div>`;
   }).join("");
   $("leadNote").innerHTML = (m === "perf"
     ? `Biến động giá: ngành xếp theo Perf ${pre ? "pre-market" : "hôm nay"}, trong cột xếp theo % tăng giá (tối đa ${LEAD_MAX} mã).`
-    : `RS Rating 1–99 = thứ hạng phần trăm của điểm RS (0,15·RS ngày + 0,35·RS 1W + 0,5·RS 1M vs SPY) trên toàn bộ ~110 mã top holdings của 11 ETF ngành. Ngành xếp theo điểm ngành; mỗi cột chỉ lấy mã RS ≥ ${LEAD_MIN} (tối đa ${LEAD_MAX}, ít nhất 1 mã).`) +
+    : `RS nhanh 1 ngày: RS Rating 1–99 = thứ hạng phần trăm của RS 1D (Perf ${pre ? "pre-market" : "hôm nay"} − SPY) trên ~110 mã top holdings của 11 ETF ngành; số sau là RS 1D. Ngành xếp theo RS 1D của ETF; mỗi cột lấy mã RS ≥ ${LEAD_MIN} (tối đa ${LEAD_MAX}, ít nhất 1 mã).`) +
     ` <span class="by" style="position:static;display:inline-block;background:#f7a600;color:#111;font-size:9px;font-weight:800;padding:0 3px;border-radius:2px">BYBIT</span> = có Stock Perp trên Bybit (rê chuột để xem mã).`;
 }
 function renderAll() {

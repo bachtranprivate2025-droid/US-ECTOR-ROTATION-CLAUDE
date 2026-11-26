@@ -441,19 +441,23 @@ def stock_metrics(bars: list[dict], spy: list[dict]) -> dict | None:
     return out
 
 
+def set_rating(rows: list[dict], key: str, out: str) -> None:
+    ok = sorted([r for r in rows if r.get(key) is not None], key=lambda r: r[key])
+    n = len(ok)
+    for i, r in enumerate(ok):
+        r[out] = int(round(1 + 98 * i / (n - 1))) if n > 1 else 50
+
+
 def attach_leaders(items: list[dict], cfg_main: list[dict], stock_daily: dict, spy: list[dict],
                    bybit_stock: dict) -> None:
-    """RS Rating 1-99 = percentile of the RS score (0.15 RS D + 0.35 RS 1W + 0.5 RS 1M) across all leader stocks."""
+    """RS Rating 1-99 = percentile of the fast 1-day RS vs SPY across all leader stocks."""
     metrics = {}
     for t, bars in stock_daily.items():
         if bars:
             m = stock_metrics(bars, spy)
-            if m and m["score"] is not None:
+            if m and m["rsD"] is not None:
                 metrics[t] = m
-    order = sorted(metrics, key=lambda t: metrics[t]["score"])
-    n = len(order)
-    for i, t in enumerate(order):
-        metrics[t]["rating"] = int(round(1 + 98 * i / (n - 1))) if n > 1 else 50
+    set_rating(list(metrics.values()), "rsD", "rating")
     by_t = {e["ticker"]: e for e in cfg_main}
     for x in items:
         lst = [dict(t=t, **{k: v for k, v in metrics[t].items() if not k.startswith("_")})
@@ -616,7 +620,10 @@ def build(fetcher: LiveFetcher, now: datetime) -> dict:
             closes = x.get("_leaderClose", {})
             for r in x.get("leaders", []):
                 q = pre_quote(s_intr.get(r["t"]) or [], closes.get(r["t"]), now, None, None)
-                r["pre"] = {"perf": q["perf"], "status": q["status"]}
+                spy_pre = bq["perf"]
+                rs = rnd(q["perf"] - spy_pre) if q["perf"] is not None and spy_pre is not None else None
+                r["pre"] = {"perf": q["perf"], "rs": rs, "status": q["status"]}
+        set_rating([r["pre"] for x in result["main"] for r in x.get("leaders", [])], "rs", "rating")
 
     rot = {g: daily_rotations(items) for g, items in result.items() if items}
 
