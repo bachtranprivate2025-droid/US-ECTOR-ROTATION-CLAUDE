@@ -354,8 +354,26 @@ function localStamp(d) {
 function preView() {
   const d = S.data; if (!d) return false;
   if (S.mode === "regular") return false;
-  if (S.mode === "pre") return true;
-  return d.session === "premarket" && d.preMarket && d.preMarket.active;
+  const has = !!(d.preMarket && d.preMarket.active);
+  if (S.mode === "pre") return has; // chưa có giá pre → hiển thị phiên gần nhất thay vì N/A
+  return d.session === "premarket" && has;
+}
+const NYSE_CLOSED = { "2026-11-26": "Thanksgiving", "2026-12-25": "Giáng sinh", "2027-01-01": "Năm mới", "2027-01-18": "MLK Day",
+  "2027-02-15": "Presidents Day", "2027-03-26": "Good Friday", "2027-05-31": "Memorial Day", "2027-06-18": "Juneteenth",
+  "2027-07-05": "Independence Day", "2027-09-06": "Labor Day", "2027-11-25": "Thanksgiving", "2027-12-24": "Giáng sinh" };
+const NYSE_HALF = { "2026-11-27": "đóng cửa sớm 13:00 ET", "2026-12-24": "đóng cửa sớm 13:00 ET" };
+function nyDate() { return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); }
+function renderModeNote() {
+  const d = S.data, el = document.querySelector(".modes .note"); if (!d || !el) return;
+  const today = nyDate(), hol = NYSE_CLOSED[today], half = NYSE_HALF[today];
+  const nyH = Number(new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour: "2-digit", hour12: false }));
+  let t = "Pre-market 04:00–09:30 New York · tự chuyển về phiên chính lúc mở cửa";
+  if (S.mode === "pre" && !preView()) {
+    const why = hol ? `hôm nay sàn Mỹ nghỉ lễ ${hol}` : nyH < 4 ? "chưa tới 04:00 New York" : nyH >= 16 ? "pre-market hôm nay đã kết thúc" : "Yahoo chưa có nến pre";
+    t = `⚠ Chưa có giá pre-market (${why}) → đang hiển thị phiên ${dmy(d.asOf)}`;
+  } else if (hol) t = `Hôm nay (${dmy(today)}) sàn Mỹ nghỉ lễ ${hol} · dữ liệu giữ phiên ${dmy(d.asOf)}`;
+  else if (half) t = `Hôm nay ${half} · ` + t;
+  el.textContent = t;
 }
 const rows = () => (S.data ? S.data[S.tab] || [] : []);
 const tabLabel = () => (S.tab === "main" ? "MAIN SECTORS" : "ETF SUB-SECTIONS");
@@ -376,6 +394,7 @@ function renderHeader() {
     ? `Pre ${dmy(d.preMarket.date)} · phiên chính ${dmy(d.asOf)} · cập nhật ${upd}`
     : `Phiên ${dmy(d.asOf)}${d.session === "regular" ? " (đang chạy)" : ""} · cập nhật ${upd}`;
   document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === S.mode));
+  renderModeNote();
 }
 
 // ---------- summary cards
@@ -389,7 +408,7 @@ function renderCards() {
     const v = r.filter((x) => isNum(preOf(x).rs)).sort((a, b) => b.pre.rs - a.pre.rs);
     html.push(card("Dẫn dắt pre-market", v.length ? v.slice(0, 3).map((x) => x.ticker).join(" · ") : "—", "Xếp theo RS pre vs SPY", "g"));
     html.push(card("Yếu nhất pre-market", v.length ? v.slice(-3).reverse().map((x) => x.ticker).join(" · ") : "—", "Chỉ xếp mã có RS pre hợp lệ", "r"));
-    const bq = d.preMarket.benchmark;
+    const bq = (d.preMarket || {}).benchmark;
     html.push(card("SPY pre-market", bq && isNum(bq.perf) ? `<span class="${cls(bq.perf)}">${fp(bq.perf)}</span>` : "N/A",
       bq && bq.asOf ? `Giá nguồn ${etTime(bq.asOf)}` : "Chưa có giá pre hôm nay"));
     html.push(card("Tự động", "60 giây/lần", "Giá Yahoo nến 5 phút · có thể trễ"));
