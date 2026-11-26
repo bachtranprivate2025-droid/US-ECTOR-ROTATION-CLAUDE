@@ -150,6 +150,12 @@ td.strc,th.strc{width:74px;min-width:74px}
 .spark{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:4px}
 .spark span{width:5px;border-radius:0;background:#1f8f4c;opacity:.9}
 .spark span.n{background:#a33232}
+.chartc{min-width:200px;width:200px}
+.svgbox{display:block;width:176px;height:46px;margin-top:2px}
+.cfoot{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin-top:4px;width:176px}
+.cfoot small{font-size:11px;white-space:nowrap}
+td.pc,th.pc{min-width:92px}
+td.pc .big{font-size:15px}
 .rvmax{color:var(--purple)!important;font-weight:800}
 td small{display:block;margin-top:1px}
 td .big{display:block}
@@ -472,9 +478,12 @@ function cols(pre) {
     { k: "ticker", h: "Mã / Sector", cls: "stk3 idc", sort: (x) => x.ticker, str: true },
   ];
   c.push(
-    { k: "today", h: "Perf hôm nay", s: pre ? "pre-market vs đóng cửa trước" : "vs đóng cửa trước", sort: (x) => todayPerf(x, pre) },
-    { k: "rs10", h: "RS vs SPY", s: "10 phiên", sort: (x) => (x.rs10 || [])[9] },
-    { k: "rvol", h: "Relative RVOL", s: "10 phiên · tím = mạnh nhất", sort: (x) => x.rvol },
+    { k: "today", h: "Perf ngày", s: pre ? "pre-market vs đóng cửa trước" : "vs đóng cửa trước", cls: "pc", sort: (x) => todayPerf(x, pre) },
+    { k: "p3", h: "Perf 3D", cls: "pc", sort: (x) => x.perf3D },
+    { k: "pw", h: "Perf 1W", cls: "pc", sort: (x) => x.perfW },
+    { k: "pm", h: "Perf 1M", cls: "pc", sort: (x) => x.perfM },
+    { k: "rs10", h: "RS vs SPY", s: "10 phiên", cls: "chartc", sort: (x) => (x.rs10 || [])[9] },
+    { k: "rvol", h: "Relative RVOL", s: "10 phiên · tím = mạnh nhất", cls: "chartc", sort: (x) => x.rvol },
     { k: "rot", h: "Rotation", sort: (x) => x.rotation, str: true },
     { k: "stocks", h: "Stock đại diện", s: "Perp Bybit · vốn hóa & thanh khoản", cls: "stocks", nosort: true },
     { k: "cat", h: "Catalyst", s: "động lực + ngày BCTC", cls: "cat", sort: (x) => x.earningsDate || "9999", str: true, asc: true });
@@ -484,6 +493,33 @@ function spark(arr) {
   const v = (arr || []).filter(isNum); if (!v.length) return "";
   const m = Math.max(...v.map(Math.abs)) || 1;
   return `<div class="spark">${arr.map((x) => isNum(x) ? `<span class="${x < 0 ? "n" : ""}" style="height:${Math.max(2, Math.round(Math.abs(x) / m * 22))}px"></span>` : `<span style="height:1px"></span>`).join("")}</div>`;
+}
+const SW = 176, SH = 46;
+function lineSpark(arr, labels) {
+  const pts = (arr || []).map((v, i) => [i, v]).filter((p) => isNum(p[1]));
+  if (pts.length < 2) return `<div class="svgbox"></div>`;
+  const n = arr.length, vals = pts.map((p) => p[1]);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); if (hi - lo < 1e-9) hi = lo + 1;
+  const px = (i) => 3 + (i / (n - 1)) * (SW - 6), py = (v) => 4 + (1 - (v - lo) / (hi - lo)) * (SH - 8);
+  const last = vals[vals.length - 1], col = last >= 0 ? "#5fd3a5" : "#ef6a6a";
+  const line = pts.map((p) => `${px(p[0]).toFixed(1)},${py(p[1]).toFixed(1)}`).join(" ");
+  const y0 = py(0).toFixed(1);
+  const area = `${px(pts[0][0]).toFixed(1)},${y0} ${line} ${px(pts[pts.length - 1][0]).toFixed(1)},${y0}`;
+  const dots = pts.map((p) => `<circle cx="${px(p[0]).toFixed(1)}" cy="${py(p[1]).toFixed(1)}" r="2.2" fill="${col}"><title>${esc((labels || [])[p[0]] || "")} ${fp(p[1])}</title></circle>`).join("");
+  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none"><line x1="0" x2="${SW}" y1="${y0}" y2="${y0}" stroke="#6b6b72" stroke-dasharray="3 3" stroke-width="1"/><polygon points="${area}" fill="${col}" fill-opacity=".14"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round"/>${dots}</svg>`;
+}
+function barSpark(arr, labels) {
+  const a = arr || [], vals = a.filter(isNum);
+  if (!vals.length) return `<div class="svgbox"></div>`;
+  const hi = Math.max(1.2, ...vals), mx = Math.max(...vals), n = a.length, bw = (SW - 4) / n;
+  const py = (v) => SH - 2 - (v / hi) * (SH - 6), y1 = py(1).toFixed(1);
+  const bars = a.map((v, i) => {
+    if (!isNum(v)) return "";
+    const c = v === mx ? "#b77cff" : v >= 1 ? "#5fd3a5" : "#6b6b72";
+    const y = py(v);
+    return `<rect x="${(2 + i * bw + 1.5).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${(SH - 2 - y).toFixed(1)}" fill="${c}" rx="1"><title>${esc((labels || [])[i] || "")} ${fx(v)}</title></rect>`;
+  }).join("");
+  return `<svg class="svgbox" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none">${bars}<line x1="0" x2="${SW}" y1="${y1}" y2="${y1}" stroke="#8a8a92" stroke-dasharray="3 3" stroke-width="1"/></svg>`;
 }
 function preCell(x, kind) {
   const q = preOf(x);
@@ -523,17 +559,20 @@ function cell(c, x, ctx) {
       }
       return `<div>${t}</div>${e}`;
     }
+    case "p3": return `<span class="big num ${cls(x.perf3D)}">${fp(x.perf3D)}</span>`;
+    case "pw": return `<span class="big num ${cls(x.perfW)}">${fp(x.perfW)}</span>`;
+    case "pm": return `<span class="big num ${cls(x.perfM)}">${fp(x.perfM)}</span>`;
     case "rs10": {
       const r = x.rs10 || [], last = r[r.length - 1];
       const up = x.rsTrend === "up";
-      return `<span class="big num ${cls(last)}">${fp(last)}</span><small>10 phiên · ${up ? "↑ mạnh dần" : "↓ yếu dần"}</small>${spark(r)}`;
+      return `${lineSpark(r, x.dates10)}<div class="cfoot"><span class="big num ${cls(last)}">${fp(last)}</span><small>10 phiên · ${up ? "↑ mạnh dần" : "↓ yếu dần"}</small></div>`;
     }
     case "rvol": {
       const r = (x.rvol10 || []).filter(isNum);
       const avg = r.length ? r.reduce((a, b) => a + b, 0) / r.length : null;
       const r10 = x.rvol10 || [];
       const d5 = isNum(r10[9]) && isNum(r10[4]) && r10[4] ? (r10[9] / r10[4] - 1) * 100 : null;
-      return `<span class="big num ${x.rvol === ctx.maxRvol ? "rvmax" : ""}">${fx(x.rvol)}</span><small>TB10 ${fx(avg)} · Δ5 ${fp(d5, 0)}</small>`;
+      return `${barSpark(r10, x.dates10)}<div class="cfoot"><span class="big num ${x.rvol === ctx.maxRvol ? "rvmax" : isNum(x.rvol) && x.rvol >= 1 ? "pos" : ""}">${fx(x.rvol)}</span><small>TB10 ${fx(avg)} · Δ5 ${fp(d5, 0)}</small></div>`;
     }
     case "rot": return `<span class="rot-b ${ROT_CLS[x.rotation] || "r-neu"}">${esc(x.rotation)}</span>`;
   }
