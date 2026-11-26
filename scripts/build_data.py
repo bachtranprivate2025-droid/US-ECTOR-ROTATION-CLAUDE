@@ -98,9 +98,22 @@ class LiveFetcher:
         ts = res.get("timestamp") or []
         q = (res.get("indicators", {}).get("quote") or [{}])[0]
         adj = ((res.get("indicators", {}).get("adjclose") or [{}])[0]).get("adjclose") or [None] * len(ts)
+        meta = res.get("meta") or {}
+        live_px, live_t = meta.get("regularMarketPrice"), meta.get("regularMarketTime")
+        live_d = datetime.fromtimestamp(live_t, NY).date() if live_t else None
         bars = []
         for i, t in enumerate(ts):
             c = q.get("close", [None])[i]
+            d0 = datetime.fromtimestamp(t, NY).date()
+            if c is None and live_px and d0 == live_d:
+                # Yahoo often leaves today's daily bar empty (null close) during and hours after
+                # the session: fill it from the live regular-market quote in meta.
+                c = live_px
+                hi, lo = meta.get("regularMarketDayHigh"), meta.get("regularMarketDayLow")
+                bars.append({"date": d0.isoformat(), "o": (q.get("open") or [None] * len(ts))[i] or c,
+                             "h": max(hi or c, c), "l": min(lo or c, c), "c": c, "adj": c,
+                             "v": meta.get("regularMarketVolume") or 0})
+                continue
             if c is None:
                 continue
             d = datetime.fromtimestamp(t, NY).date()
