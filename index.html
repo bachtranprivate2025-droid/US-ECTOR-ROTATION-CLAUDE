@@ -119,6 +119,8 @@ td.strc,th.strc{width:74px;min-width:74px}
 .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .chip{font-size:10.5px;padding:1px 6px;border-radius:2px;font-family:var(--mono);background:var(--chip);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .chip.e{color:var(--accent);border-color:#3a2e20}.chip.s{color:#9cc9ff;border-color:#1f3550}
+.stocks .tag:first-child{margin-top:0}
+.stk-list{margin-top:7px;padding-top:6px;border-top:1px solid var(--line,rgba(255,255,255,.08))}
 .tag{font-size:9.5px;letter-spacing:.06em;color:var(--dim);font-weight:700;margin-top:5px;display:block}
 .cat{min-width:230px;max-width:300px;font-size:12.5px}
 .cat .ok{color:var(--green);font-weight:600}
@@ -162,7 +164,7 @@ footer ul{margin:6px 0 0 18px;padding:0}
     <div>
       <div class="kicker">Portfolio Rotation Dashboard</div>
       <h1>US Sector Rotation</h1>
-      <p class="lede">Performance tuyệt đối · RS vs SPY · ETF Net Flow USD thực từ ETFIQ</p>
+      <p class="lede">Performance tuyệt đối · RS vs SPY · RVOL · Rotation · Perp Bybit</p>
     </div>
     <div class="status">
       <span id="badge" class="badge"><span class="dot"></span><span>Đang kết nối dữ liệu…</span></span>
@@ -445,11 +447,10 @@ function cols(pre) {
   c.push(
     { k: "today", h: "Perf hôm nay", s: pre ? "pre-market vs đóng cửa trước" : "vs đóng cửa trước", sort: (x) => todayPerf(x, pre) },
     { k: "rs10", h: "RS vs SPY", s: "10 phiên", sort: (x) => (x.rs10 || [])[9] },
-    { k: "stocks", h: "Stock đại diện", s: "vốn hóa & thanh khoản", cls: "stocks", nosort: true },
-    { k: "cat", h: "Catalyst", s: "động lực + ngày BCTC", cls: "cat", sort: (x) => x.earningsDate || "9999", str: true, asc: true },
     { k: "rvol", h: "Relative RVOL", s: "10 phiên · tím = mạnh nhất", sort: (x) => x.rvol },
-    { k: "flow", h: "ETF Net Flow 10 phiên", s: "USD thực · ETFIQ", sort: (x) => x.etfFlowTotal10 },
-    { k: "rot", h: "Rotation", sort: (x) => x.rotation, str: true });
+    { k: "rot", h: "Rotation", sort: (x) => x.rotation, str: true },
+    { k: "stocks", h: "Stock đại diện", s: "Perp Bybit · vốn hóa & thanh khoản", cls: "stocks", nosort: true },
+    { k: "cat", h: "Catalyst", s: "động lực + ngày BCTC", cls: "cat", sort: (x) => x.earningsDate || "9999", str: true, asc: true });
   return c;
 }
 function spark(arr) {
@@ -478,9 +479,10 @@ function cell(c, x, ctx) {
       return `<span class="big num ${cls(x.perfD)}">${fp(x.perfD)}</span><small>${live ? "phiên chính · đang chạy" : "phiên " + dmy(S.data.asOf)}</small>`;
     }
     case "stocks": {
-      let h = `<div>${esc(x.stocks)}</div>`;
+      let h = "";
       if (x.bybitEtfPerp) h += `<span class="tag">BYBIT ETF</span><div class="chips"><span class="chip e">${x.bybitEtfPerp}</span></div>`;
       if (x.bybitStockPerps && x.bybitStockPerps.length) h += `<span class="tag">BYBIT STOCK</span><div class="chips">${x.bybitStockPerps.map((s) => `<span class="chip s">${s.symbol}</span>`).join("")}</div>`;
+      h += `<div class="${h ? "stk-list" : ""}">${esc(x.stocks)}</div>`;
       return h;
     }
     case "cat": {
@@ -505,13 +507,6 @@ function cell(c, x, ctx) {
       const r10 = x.rvol10 || [];
       const d5 = isNum(r10[9]) && isNum(r10[4]) && r10[4] ? (r10[9] / r10[4] - 1) * 100 : null;
       return `<span class="big num ${x.rvol === ctx.maxRvol ? "rvmax" : ""}">${fx(x.rvol)}</span><small>TB10 ${fx(avg)} · Δ5 ${fp(d5, 0)}</small>`;
-    }
-    case "flow": {
-      if (x.etfFlowCoverage === "daily")
-        return `<span class="big num ${cls(x.etfFlowTotal10)}">${fusd(x.etfFlowTotal10)}</span><small>Σ10 · 3P ${fusd(x.etfFlow3)}</small><small>ETFIQ · as of ${dmy(x.etfFlowAsOf)}</small>${spark(x.etfFlow10)}`;
-      if (x.etfFlowCoverage === "monthly")
-        return `<span class="flat">Chỉ có flow tháng</span><small>${esc(x.etfFlowAsOf || "")}: <span class="${cls(x.etfFlowMonthly)}">${fusd(x.etfFlowMonthly)}</span></small>`;
-      return `<span class="flat">N/A</span><small>ETFIQ chưa có dữ liệu</small>`;
     }
     case "rot": return `<span class="rot-b ${ROT_CLS[x.rotation] || "r-neu"}">${esc(x.rotation)}</span>`;
   }
